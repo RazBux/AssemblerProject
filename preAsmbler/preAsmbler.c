@@ -306,7 +306,7 @@ void AddMacroToFile(const char *outputFileName, MacroStorage *storage)
 int main(void)
 {
     char inputFileName[] = "./textFiles/m.txt";
-    char outputFileName[] = "./macro_output.txt";
+    char outputFileName[] = "./textFiles/macro_output.txt";
     FILE *file = fopen(inputFileName, "r");
 
     /* Create the MacroStorage in memory*/
