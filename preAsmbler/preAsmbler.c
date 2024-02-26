@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+#include <ctype.h>]
+# include "../globVal/glob_val.h"
 
-#define MAX_LINE_LENGTH 81
-#define MAX_MACRO_NAME 31
+
 #define INITIAL_MACRO_COUNT 10
 
 /* Dynamic structure to hold macro names and texts */
@@ -188,6 +188,7 @@ void readMacrosFromFile(FILE *file, MacroStorage *storage, const char *outputFil
         return;
     }
 
+     /*maybe need to change to MAX_LINE_LENGTH the sizeof(line)*/
     while (fgets(line, sizeof(line), file) != NULL)
     {
         if (strstr(line, " mcr ") != NULL)

@@ -1,5 +1,3 @@
-zz
-    mm
 .define sz = 2 
 MAIN:       mov r3, LIST[sz]
 LOOP:       jmp L1
@@ -18,14 +16,4 @@ END:        hlt
 STR:        .string “abcdef” 
 LIST: .data 6, -9, len
 K:          .data 22
-    mcr mm 
-        cmp r2, 4w
-        trv .g
-        tetxt
-    endmcr 
-    mm
-        mm
-    mm
-    m_mcr
-MAX
 

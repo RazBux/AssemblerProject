@@ -1,5 +1,15 @@
-util: util.c
-	gcc -ansi -Wall -pedantic -g util.c -o util
+# Define compiler and flags
+CC=gcc
+CFLAGS=-ansi -Wall -pedantic -g
 
-run: util
-	./util
+# Target to build the executable directly from source files
+firstProcess: firstProcess.c util.c
+	$(CC) $(CFLAGS) firstProcess.c util.c -o firstProcess
+
+# Target to run the program
+run: firstProcess
+	./firstProcess
+
+# Target to clean the build files
+clean:
+	rm -f firstProcess
