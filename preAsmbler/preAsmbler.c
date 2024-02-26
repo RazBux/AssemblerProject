@@ -305,8 +305,10 @@ void AddMacroToFile(const char *outputFileName, MacroStorage *storage)
 
 int main(void)
 {
+    /* change this to recives the files name. and them chagne the name to 
+        ".am" at the end and return the file path for the firstProcess */
     char inputFileName[] = "./textFiles/m.txt";
-    char outputFileName[] = "./textFiles/macro_output.txt";
+    char outputFileName[] = "./textFiles/m.am";
     FILE *file = fopen(inputFileName, "r");
 
     /* Create the MacroStorage in memory*/
