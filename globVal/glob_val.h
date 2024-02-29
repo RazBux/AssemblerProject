@@ -7,8 +7,19 @@
 #define MEMORY_SIZE 4096
 #define WORD_LEN 14
 
+/* Use for managing the state when processing the line from the Asmbly file */
+enum Flag{
+    START, 
+    LABEL, /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
+    OP_CODE, /* operands name sparating by ',' */
+    G1_OPERAND,
+    G2_OPERAND,
+    G3_OPERAND,
+    DEFINE
+};
+
 /* Defines a register type - r0 to r7 & not a register */
-typedef enum registers
+typedef enum Registers
 {
     r0,
     r1,
@@ -22,7 +33,7 @@ typedef enum registers
 } reg;
 
 /* Defines the codes for the supported operations */
-typedef enum op_code
+typedef enum Op_code
 {
     mov,
     cmp,
@@ -43,7 +54,7 @@ typedef enum op_code
 } op_code;
 
 /* division for bytes for the "First word" in an instruction */
-typedef struct first_word
+typedef struct First_word
 {
     /*14 bytes total*/
     unsigned int ARE : 2;
@@ -54,18 +65,11 @@ typedef struct first_word
 } first_word;
 
 /*format the number divsion in binary*/
-typedef struct number
+typedef struct Number
 {
     /* 14 bytes, ARE_bytes are 0 */
     unsigned int ARE : 2;
     unsigned int number : 12; /*The number will be display as 12 digint binary*/
 } number;
-
-
-
-
-
-
-
 
 #endif

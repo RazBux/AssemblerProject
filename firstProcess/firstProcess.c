@@ -42,12 +42,13 @@ int startFirstProcess(char *asmblerOpenFile)
 */
 int processLine(char *line)
 {
+    int labelFlag = 0; /*maybe using enum ? for multiful flags ?*/
+    enum Flag flag = START;
     size_t pLen; /* for checking the if it's a lable */
 
     int firstCharIndex;
     char *p;
     char delimiters[] = " \t\n";
-
     /*1: check if it is an empty line*/
     if (line[0] == '\0' || strspn(line, " \t\n") == strlen(line))
     {
@@ -68,16 +69,20 @@ int processLine(char *line)
     /* Tokenize the line */
     while (p != NULL)
     {
-        int lableFlag = 0; /* for showing we idintify a lable - meaning the next world shuold be an opcode */
-
         printf("Token: %s\n", p); /* Print each token */
-                                  /*check if there is a lable in the first word,
-                                      by see if the last char is ":" - is so, check */
-
         pLen = strlen(p);
-        /* check if the first word is lable */
-        if (*(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
+
+        /* Lable check:
+            if there is a lable in the first word,
+            by see if the last char is ":" - is so, check */
+        if (START && *(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
         {
+            /*if the first char of the lable isnt a char - raise an error/flag*/
+            if (!isalpha(*(p))){
+                printf("Error while defining a lable - the first character of %s isn't 'alpha batic'\n", p);
+                return -1;
+            }
+                
             char *label = (char *)malloc(pLen - 1); /*Allocate memory for label, including space for null terminator*/
             if (label != NULL)
             { /*if the alloction is was successful*/
@@ -92,7 +97,10 @@ int processLine(char *line)
                 */
             }
             free(label); /*free the lable memory*/
-        }
+            flag = LABEL; /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
+        }   
+        
+
 
         p = strtok(NULL, delimiters); /* Get the next token */
     }
@@ -104,6 +112,7 @@ int processLine(char *line)
 /* Function to check if the new lable is already assige before. if so, it is an error*/
 int checkForSameLableName(char *newLableName)
 {
+    /*check if it's no a define or lable - p39*/
     return 0;
     /*add here the checking*/
     if (newLableName == NULL)
