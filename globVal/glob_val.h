@@ -3,6 +3,7 @@
 
 #define MAX_LINE_LENGTH 80
 #define MAX_MACRO_NAME 30
+#define MAX_LABLE_NAME 31
 #define MEMORY_SIZE 4096
 #define WORD_LEN 14
 
