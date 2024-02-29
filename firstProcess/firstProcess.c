@@ -1,7 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "../globVal/glob_val.h"
+
+int processLine(char *);
+int startFirstProcess(char *);
+int checkForSameLableName(char *);
 
 int startFirstProcess(char *asmblerOpenFile)
 {
@@ -16,19 +21,95 @@ int startFirstProcess(char *asmblerOpenFile)
     }
 
     /*start processing line by line*/
-    while (fgets(line, MAX_LINE_LENGTH, file) != NULL )
+    while (fgets(line, MAX_LINE_LENGTH, file) != NULL)
     {
-        char *p;
-        char delimiters[] = " \t\n";
 
-        p = strtok(line, delimiters);
-        /* Tokenize the line */
-        while (p != NULL )
-        {   
-            printf("Token: %s\n", p);     /* Print each token */
-            p = strtok(NULL, delimiters); /* Get the next token */
+        processLine(line);
+    }
+
+    return 0;
+}
+
+/*
+    This function process the line of the original Asembly code.
+    there are 5 possible line
+    1: empty: all lite is white spaces or tabs
+    2: comment: the first char of the line is ";"
+    3: directive: tell the asembler what to do.
+        direcrive line -does not- preduce a machine instruction binary output
+    4: instruction: line that preduce a binary for the machine
+    5: defining constent: creating a const variable
+*/
+int processLine(char *line)
+{
+    size_t pLen; /* for checking the if it's a lable */
+
+    int firstCharIndex;
+    char *p;
+    char delimiters[] = " \t\n";
+
+    /*1: check if it is an empty line*/
+    if (line[0] == '\0' || strspn(line, " \t\n") == strlen(line))
+    {
+        printf("Empty or whitespace-only line\n");
+        return 0; /* Return immediately if the line is empty */
+    }
+
+    /*2: check if the first char is ; meaning its a comment line */
+    firstCharIndex = strspn(line, " \t\n");
+    if (line[firstCharIndex] == ';')
+    {
+        printf("Comment line: %s\n", line);
+        return 0; /* Return immediately if the line is a comment */
+    }
+
+    p = strtok(line, delimiters);
+
+    /* Tokenize the line */
+    while (p != NULL)
+    {
+        int lableFlag = 0; /* for showing we idintify a lable - meaning the next world shuold be an opcode */
+
+        printf("Token: %s\n", p); /* Print each token */
+                                  /*check if there is a lable in the first word,
+                                      by see if the last char is ":" - is so, check */
+
+        pLen = strlen(p);
+        /* check if the first word is lable */
+        if (*(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
+        {
+            char *label = (char *)malloc(pLen - 1); /*Allocate memory for label, including space for null terminator*/
+            if (label != NULL)
+            { /*if the alloction is was successful*/
+                strncpy(label, p, pLen - 1);
+                printf("there is a lable here> %s\n", label);
+            }
+            if (checkForSameLableName(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
+            {
+                printf("Valid lable name -> add it to the lable matrix\n");
+                /*
+                    addLableToMetrix(label);
+                */
+            }
+            free(label); /*free the lable memory*/
         }
-        printf("\n");
+
+        p = strtok(NULL, delimiters); /* Get the next token */
+    }
+    printf("\n");
+
+    return 0;
+}
+
+/* Function to check if the new lable is already assige before. if so, it is an error*/
+int checkForSameLableName(char *newLableName)
+{
+    return 0;
+    /*add here the checking*/
+    if (newLableName == NULL)
+    {
+
+        printf("error: There is all ready lable with this name");
     }
 
     return 0;
@@ -41,4 +122,3 @@ int main(void)
 
     return 0;
 }
-
