@@ -15,7 +15,8 @@ enum Flag{
     G1_OPERAND,
     G2_OPERAND,
     G3_OPERAND,
-    DEFINE
+    DEFINE, /* name of the  */
+    NUM_OF_FLAG
 };
 
 /* Defines a register type - r0 to r7 & not a register */
@@ -53,6 +54,7 @@ typedef enum Op_code
     hlt
 } op_code;
 
+
 /* division for bytes for the "First word" in an instruction */
 typedef struct First_word
 {
@@ -67,7 +69,7 @@ typedef struct First_word
 /*format the number divsion in binary*/
 typedef struct Number
 {
-    /* 14 bytes, ARE_bytes are 0 */
+    /* 14 bytes, ARE_bytes are 00 */
     unsigned int ARE : 2;
     unsigned int number : 12; /*The number will be display as 12 digint binary*/
 } number;

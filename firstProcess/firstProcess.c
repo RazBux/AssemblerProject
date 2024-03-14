@@ -2,11 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
+#include "util.h"
 #include "../globVal/glob_val.h"
 
 int processLine(char *);
 int startFirstProcess(char *);
 int checkForSameLableName(char *);
+int addToSymbolTable(char*, int);
+int checkDefineName(char*);
 
 int startFirstProcess(char *asmblerOpenFile)
 {
@@ -42,7 +46,6 @@ int startFirstProcess(char *asmblerOpenFile)
 */
 int processLine(char *line)
 {
-    int labelFlag = 0; /*maybe using enum ? for multiful flags ?*/
     enum Flag flag = START;
     size_t pLen; /* for checking the if it's a lable */
 
@@ -69,40 +72,151 @@ int processLine(char *line)
     /* Tokenize the line */
     while (p != NULL)
     {
-        printf("Token: %s\n", p); /* Print each token */
         pLen = strlen(p);
 
         /* Lable check:
             if there is a lable in the first word,
-            by see if the last char is ":" - is so, check */
-        if (START && *(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
+            by see if the last char is ":" */
+        if (flag == START && *(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
         {
+            char *label;
             /*if the first char of the lable isnt a char - raise an error/flag*/
-            if (!isalpha(*(p))){
+            if (!isalpha(*p))
+            {
                 printf("Error while defining a lable - the first character of %s isn't 'alpha batic'\n", p);
                 return -1;
             }
-                
-            char *label = (char *)malloc(pLen - 1); /*Allocate memory for label, including space for null terminator*/
+
+            label = (char *)malloc(pLen); /*Allocate memory for label, including space for null terminator*/
             if (label != NULL)
             { /*if the alloction is was successful*/
                 strncpy(label, p, pLen - 1);
-                printf("there is a lable here> %s\n", label);
+                printf("LABLE: %s\n", label);
             }
             if (checkForSameLableName(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
             {
-                printf("Valid lable name -> add it to the lable matrix\n");
+                printf("Valid lable name -> add \"%s\" to lable matrix\n", label);
                 /*
                     addLableToMetrix(label);
                 */
             }
-            free(label); /*free the lable memory*/
+            free(label);  /*free the lable memory*/
             flag = LABEL; /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
-        }   
-        
+        }
 
+        /* if it's a directive line */
+        else if (*p == '.')
+        {
+            printf("DIR: %s\n", p);
+            /* check witch of the cases it is */
+            if (strcmp(p, ".data") == 0)
+            {
+                int countData = 0;
+                /* use while loop to exstract all the data into array */
+                while (p != NULL)
+                {
+                    p = strtok(NULL, delimiters);
+                    if (p == NULL) /*meaning there is no other word after the .data*/
+                    {
+                        if (countData == 0)
+                        {
+                            printf("ERROR: there is no data after the .data\n");
+                        }
+                    }
+                    else
+                    {
+                        printf("DATA: %s\n", p);
+                        countData++;
+                    }
+                }
+            }
+            else if (strcmp(p, ".string") == 0)
+            {
+                p = strtok(NULL, delimiters);
+                /* after a .string the next word need to be - "somting" */
+                if (*p == '\"' && *(p + strlen(p) - 1) == '\"')
+                {
+                    /* exstract the word to */
+                    printf("STRING: %s\n", p);
+                }
+                else
+                {
+                    printf("Error: no \" at the start or finish of .string for %s\"\n", p);
+                }
+            }
+            /* the asmbler need to ignore this line and will print worning massage */
+            else if (strcmp(p, ".entry") == 0 || strcmp(p, ".entern") == 0)
+            {
+                printf("Worning: %s ", p);
+                return 0;
+            }
+            else if (strcmp(p, ".define") == 0){
+                /* in case of define -> should be 'name' = 'number' and the name need to be in the sembol table */
+                int number;
+                char* defineName; 
+                
+                p = strtok(NULL, delimiters);
+                
+                /*check if the name is a uniqe name*/
+                if(checkDefineName(p) == 0){
+                    /*allocate memory to the name of the define*/
+                    defineName = (char *)malloc(strlen(p));
+                    strcpy(defineName, p);
+                    
+                    /*see if the next value is '='*/
+                    p = strtok(NULL, delimiters);
+                    if (!(strlen(p) == 1 && *p == '=')){
+                        printf("%s isn't a '=' as sould be when defining a constent\n", p);
+                    }
 
-        p = strtok(NULL, delimiters); /* Get the next token */
+                    /*check if it's a number*/
+                    p = strtok(NULL, delimiters);
+                    number = atoi(p); /*converting string to int number*/
+                    if(!(number >= INT_MIN && number <= INT_MAX)){
+                        printf("%s isn't a number, pls use number when defining a constent\n",p);
+                    }
+
+                    printf("NEW DEFINE: %s = %d\n", defineName, number);
+                    addToSymbolTable(defineName,number);
+                    free(defineName);
+                
+                }
+                else{
+                    printf("'%s' is alredy defined pls use another name insted\n", p);
+                }
+                ;
+            }
+            /* if it is not a valid directive name -> error */
+            else
+            {
+                printf("Error: this directive command doesn't exsist!\n");
+            }
+        }
+        else if (is_op_code(p) == 0)
+        {
+            /* add here the opcode and all the processing for the operands */
+            printf("OP_CODE:%s\n", p);
+            while (p != NULL)
+            {
+                p = strtok(NULL, delimiters);
+                if (p != NULL)
+                {
+                    printf("OC: %s\n", p);
+                }
+            }
+            
+        }
+        /*add here in cases where there is lables or defining that used.*/
+        /*else if(){
+
+        }*/
+        else
+        {
+            printf("Token: %s\n", p); /* Print each token */
+        }
+
+        p = strtok(NULL, delimiters); /* Get the next word-token */
+        flag = NUM_OF_FLAG;
     }
     printf("\n");
 
@@ -123,6 +237,18 @@ int checkForSameLableName(char *newLableName)
 
     return 0;
 }
+
+int addToSymbolTable(char* defineName, int number){
+    /*add the define the the table of symbols*/
+    return 0;
+}
+
+int checkDefineName(char* defineName){
+    /*check if there is alredy name as the declared one*/
+    
+    return 0;
+}
+
 
 int main(void)
 {

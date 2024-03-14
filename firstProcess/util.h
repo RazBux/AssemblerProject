@@ -10,7 +10,7 @@
 #include "../globVal/glob_val.h"
 
 /* Function prototypes */
-int is_valid_save_word(char* word);
+int is_op_code(char* word);
 void printBinary14(unsigned int number);
 
 #endif /* INSTRUCTION_UTILS_H */

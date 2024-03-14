@@ -4,7 +4,7 @@
 #include "util.h"
 
 /* Function to check if a word is in saved_words */
-int is_valid_save_word(char* word){
+int is_op_code(char* word){
     int i;
     const char* saved_words[] = {
     /*G:1 command - 2 operands*/ 
@@ -13,8 +13,9 @@ int is_valid_save_word(char* word){
     "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr"  
     /*G:3 no operands */  
     , "rts", "hlt"
-    /*Register names*/
-    ,"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"
+
+    /* Register names maybe not need to be include. maybe only for checks */
+    /*,"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"*/
     };
 
     int numWords = sizeof(saved_words) / sizeof(saved_words[0]);
