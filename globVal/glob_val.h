@@ -5,7 +5,17 @@
 #define MAX_MACRO_NAME 30
 #define MAX_LABLE_NAME 31
 #define MEMORY_SIZE 4096
+#define INITIAL_MACRO_COUNT 10
 #define WORD_LEN 14
+
+/* Dynamic structure to hold macro names and texts */
+typedef struct
+{
+    char **names;
+    char **texts;
+    int size;
+    int count;
+} MacroStorage;
 
 /* Use for managing the state when processing the line from the Asmbly file */
 enum Flag{
@@ -15,7 +25,7 @@ enum Flag{
     G1_OPERAND,
     G2_OPERAND,
     G3_OPERAND,
-    DEFINE, /* name of the  */
+    DEFINE,
     NUM_OF_FLAG
 };
 
@@ -53,7 +63,6 @@ typedef enum Op_code
     rts,
     hlt
 } op_code;
-
 
 /* division for bytes for the "First word" in an instruction */
 typedef struct First_word

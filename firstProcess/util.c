@@ -1,10 +1,76 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../globVal/glob_val.h"
 #include "util.h"
 
+void initSymbolTable(SymbolTable *symbolArray, size_t symbolCount)
+{
+    symbolArray = NULL;
+    symbolCount = 0;
+}
+
+void addSymbol(SymbolTable *symbolArray, size_t symbolCount, char* symbol, char* prop, int val) {
+    /* Resize the symbolArray to accommodate one more SymbolTable */ 
+    SymbolTable *newArray = (SymbolTable*)realloc(symbolArray, (symbolCount + 1) * sizeof(SymbolTable));
+    if (newArray == NULL) {
+        /* Handle realloc failure */ 
+        printf("Error reallocating memory\n");
+        return;
+    }
+    symbolArray = newArray;
+
+    /* Allocate memory and copy the strings to ensure the data is owned by the array */
+    symbolArray[symbolCount].symbol = strdup(symbol);
+    symbolArray[symbolCount].prop = strdup(prop);
+    symbolArray[symbolCount].val = val;
+
+    symbolCount++;
+}
+
+void printSymbols(const SymbolTable *symbolArray, size_t symbolCount) {
+    size_t i;
+    for (i = 0; i < symbolCount; i++) {
+        printf("Symbol: %s, Prop: %s, Val: %d\n", symbolArray[i].symbol, symbolArray[i].prop, symbolArray[i].val);
+    }
+}
+
+int hasSymbol(SymbolTable *symbolArray, size_t symbolCount, char* name) {
+    size_t i;
+    for (i = 0; i < symbolCount; i++) {
+        if (strcmp(symbolArray[i].symbol, name) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void freeSymbolTable(SymbolTable **symbolArray, size_t *symbolCount) {
+    size_t i;
+    for (i = 0; i < *symbolCount; i++) {
+        free((*symbolArray)[i].symbol);
+        free((*symbolArray)[i].prop);
+    }
+    free(*symbolArray);
+    *symbolArray = NULL;
+    *symbolCount = 0;
+}
+
+void writeSymbolTableToFile(const SymbolTable *symbolArray, size_t symbolCount, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (file == NULL) {
+        printf("Error opening file\n");
+        return;
+    }
+    size_t i;
+    for (i = 0; i < symbolCount; i++) {
+        fprintf(file, "Symbol: %s, Prop: %s, Val: %d\n", symbolArray[i].symbol, symbolArray[i].prop, symbolArray[i].val);
+    }
+    fclose(file);
+}
+
 /* Function to check if a word is in saved_words */
-int is_op_code(char* word){
+int isOpCode(char* word){
     int i;
     const char* saved_words[] = {
     /*G:1 command - 2 operands*/ 

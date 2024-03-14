@@ -4,20 +4,8 @@
 #include <ctype.h>]
 # include "../globVal/glob_val.h"
 
-
-#define INITIAL_MACRO_COUNT 10
-
-/* Dynamic structure to hold macro names and texts */
-typedef struct
-{
-    char **names;
-    char **texts;
-    int size;
-    int count;
-} MacroStorage;
-
 /* Initialize macro storage */
-void initMacroStorage(MacroStorage *storage)
+void init_macro_storage(MacroStorage *storage)
 {
     storage->size = INITIAL_MACRO_COUNT;
     storage->count = 0;
@@ -25,8 +13,8 @@ void initMacroStorage(MacroStorage *storage)
     storage->texts = malloc(storage->size * sizeof(char *));
 }
 
-/* Method to clean the macroText from lots of tabs and unnessecry white spaces */
-char *cleanText(const char *src)
+/* Method to clean the macroText from lots of tabs and unnessecry white spaces to simplified and make the work easier */
+char *clean_text(const char *src)
 {
     char *cleanedText;
     char *dst;
@@ -81,7 +69,7 @@ char *cleanText(const char *src)
 }
 
 /* Function to print all stored macros */
-void printStoredMacros(const MacroStorage *storage)
+void print_stored_macros(const MacroStorage *storage)
 {
     int i;
     printf("Stored Macros:\n");
@@ -92,10 +80,10 @@ void printStoredMacros(const MacroStorage *storage)
 }
 
 /* Function that add a macro to the storage. both the name and the text of the macro */
-void addMacro(MacroStorage *storage, const char *name, char *text)
+void add_macro(MacroStorage *storage, const char *name, char *text)
 {
     /* Clean the text from spaces and others */
-    char *cleanedText = cleanText(text);
+    char *cleanedText = clean_text(text);
     if (cleanedText != NULL)
     {
         strcpy(text, cleanedText);
@@ -120,7 +108,7 @@ void addMacro(MacroStorage *storage, const char *name, char *text)
 }
 
 /* Free macro storage */
-void freeMacroStorage(MacroStorage *storage)
+void free_macro_storage(MacroStorage *storage)
 {
     int i;
     for (i = 0; i < storage->count; i++)
@@ -174,7 +162,7 @@ char *get_macro_name(char *line)
 }
 
 /* This function read the Assmbler program file and take all the macro from it. */
-void readMacrosFromFile(FILE *file, MacroStorage *storage, const char *outputFileName)
+void read_macros_from_file(FILE *file, MacroStorage *storage, const char *outputFileName)
 {
     char line[MAX_LINE_LENGTH];
     char name[MAX_MACRO_NAME] = {0};
@@ -201,7 +189,7 @@ void readMacrosFromFile(FILE *file, MacroStorage *storage, const char *outputFil
         }
         else if (strstr(line, " endmcr") != NULL && readingMacro)
         {
-            addMacro(storage, name, text);
+            add_macro(storage, name, text);
             name[0] = '\0'; /* reset the mcaro name */
             text[0] = '\0';
             readingMacro = 0;
@@ -233,7 +221,7 @@ void readMacrosFromFile(FILE *file, MacroStorage *storage, const char *outputFil
     for exsample: if there is a macroName: "mm", so in all the palces there is "mm" 
     the name will be removed and the macroText of "mm" will be displayed 
 */
-void AddMacroToFile(const char *outputFileName, MacroStorage *storage)
+void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
 {
     FILE *outputFile = fopen(outputFileName, "r");
     FILE *tempFile = fopen("tempfile.txt", "w");
@@ -314,11 +302,11 @@ int main(void)
 
     /* Create the MacroStorage in memory*/
     MacroStorage storage;
-    initMacroStorage(&storage);
+    init_macro_storage(&storage);
 
     if (file)
     {
-        readMacrosFromFile(file, &storage, outputFileName);
+        read_macros_from_file(file, &storage, outputFileName);
         fclose(file);
     }
     else
@@ -328,12 +316,12 @@ int main(void)
     }
 
     /* Print all stored macros - Optional */
-    printStoredMacros(&storage);
+    print_stored_macros(&storage);
 
     /* Process the input file and write the result to the output file */
-    AddMacroToFile(outputFileName, &storage);
+    add_macro_to_file(outputFileName, &storage);
 
-    freeMacroStorage(&storage);
+    free_macro_storage(&storage);
 
     printf("Processing complete!\nOutput written to: %s\n", outputFileName);
 

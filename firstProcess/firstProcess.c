@@ -26,7 +26,6 @@ int startFirstProcess(char *asmblerOpenFile)
     /*start processing line by line*/
     while (fgets(line, MAX_LINE_LENGTH, file) != NULL)
     {
-
         processLine(line);
     }
 
@@ -42,6 +41,9 @@ int startFirstProcess(char *asmblerOpenFile)
         direcrive line -does not- preduce a machine instruction binary output
     4: instruction: line that preduce a binary for the machine
     5: defining constent: creating a const variable
+
+    if there is an error - the function will return 1. 
+    that's how the program will know to not preduce the files at the end. 
 */
 int processLine(char *line)
 {
@@ -102,10 +104,12 @@ int processLine(char *line)
             free(label);  /*free the lable memory*/
             flag = LABEL; /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
         }
-
         /* if it's a directive line */
         else if (*p == '.')
         {
+            if (flag == LABEL){
+                printf("data:: ");
+            }
             printf("DIR: %s\n", p);
             /* check witch of the cases it is */
             if (strcmp(p, ".data") == 0)
@@ -128,6 +132,7 @@ int processLine(char *line)
                         countData++;
                     }
                 }
+
             }
             else if (strcmp(p, ".string") == 0)
             {
@@ -144,7 +149,7 @@ int processLine(char *line)
                 }
             }
             /* the asmbler need to ignore this line and will print worning massage */
-            else if (strcmp(p, ".entry") == 0 || strcmp(p, ".entern") == 0)
+            else if (strcmp(p, ".entry") == 0 || strcmp(p, ".extern") == 0)
             {
                 printf("Worning: %s ", p);
                 return 0;
@@ -175,7 +180,7 @@ int processLine(char *line)
                         printf("%s isn't int, pls use number when defining a constent\n",p);
                     }
 
-                    printf("NEW DEFINE: %s = %d\n", defineName, number);
+                    printf("mdefine: %s = %d\n", defineName, number);
                     addToSymbolTable(defineName,number);
                     free(defineName);
                 }
@@ -191,6 +196,9 @@ int processLine(char *line)
         }
         else if (is_op_code(p) == 0)
         {
+            if (flag == LABEL){
+                printf("code:: ");
+            }
             /* add here the opcode and all the processing for the operands */
             printf("OP_CODE:%s\n", p);
             while (p != NULL)
