@@ -8,9 +8,8 @@
 
 int processLine(char *);
 int startFirstProcess(char *);
-int checkForSameLableName(char *);
+int checkIfValidName(char *);
 int addToSymbolTable(char*, int);
-int checkDefineName(char*);
 
 int startFirstProcess(char *asmblerOpenFile)
 {
@@ -93,7 +92,7 @@ int processLine(char *line)
                 strncpy(label, p, pLen - 1);
                 printf("LABLE: %s\n", label);
             }
-            if (checkForSameLableName(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
+            if (checkIfValidName(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
             {
                 printf("Valid lable name -> add \"%s\" to lable matrix\n", label);
                 /*
@@ -158,7 +157,7 @@ int processLine(char *line)
                 p = strtok(NULL, delimiters);
                 
                 /*check if the name is a uniqe name*/
-                if(checkDefineName(p) == 0){
+                if(checkIfValidName(p) == 0){
                     /*allocate memory to the name of the define*/
                     defineName = (char *)malloc(strlen(p));
                     strcpy(defineName, p);
@@ -173,18 +172,16 @@ int processLine(char *line)
                     p = strtok(NULL, delimiters);
                     number = atoi(p); /*converting string to int number*/
                     if(!(number >= INT_MIN && number <= INT_MAX)){
-                        printf("%s isn't a number, pls use number when defining a constent\n",p);
+                        printf("%s isn't int, pls use number when defining a constent\n",p);
                     }
 
                     printf("NEW DEFINE: %s = %d\n", defineName, number);
                     addToSymbolTable(defineName,number);
                     free(defineName);
-                
                 }
                 else{
                     printf("'%s' is alredy defined pls use another name insted\n", p);
                 }
-                ;
             }
             /* if it is not a valid directive name -> error */
             else
@@ -224,7 +221,7 @@ int processLine(char *line)
 }
 
 /* Function to check if the new lable is already assige before. if so, it is an error*/
-int checkForSameLableName(char *newLableName)
+int checkIfValidName(char *newLableName)
 {
     /*check if it's no a define or lable - p39*/
     return 0;
@@ -240,12 +237,6 @@ int checkForSameLableName(char *newLableName)
 
 int addToSymbolTable(char* defineName, int number){
     /*add the define the the table of symbols*/
-    return 0;
-}
-
-int checkDefineName(char* defineName){
-    /*check if there is alredy name as the declared one*/
-    
     return 0;
 }
 
