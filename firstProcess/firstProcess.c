@@ -6,7 +6,7 @@
 #include "util.h"
 #include "../globVal/glob_val.h"
 
-int processLine(char *, int, int, SymbolTable);
+int processLine(char *, int, int, SymbolTable *);
 int startFirstProcess(char *);
 int checkIfValidName(char *);
 int addToSymbolTable(char*, char*, int);
@@ -15,6 +15,12 @@ int startFirstProcess(char *asmblerOpenFile)
 {
     FILE *file = fopen(asmblerOpenFile, "r");
     char line[MAX_LINE_LENGTH];
+    /* creaet counters for tracking the code and instruction */
+    int DC = 0; /* Data counter */
+    int IC = 0; /* Instruction counter */
+    /* create symbol table */ 
+    SymbolTable st;
+    initSymbolTable(&st);  /* Initialize the symbol table */ 
 
     /*check if the file is opened*/
     if (!file)
@@ -23,19 +29,14 @@ int startFirstProcess(char *asmblerOpenFile)
         return -1;
     }
 
-    /* creaet counters for tracking the code and instruction */
-    int DC = 0; /* Data counter */
-    int IC = 0; /* Instruction counter */
-    /* create symbol table */ 
-    SymbolTable st;
-    initSymbolTable(&st);  /* Initialize the symbol table */ 
-
     /*start processing line by line*/
     while (fgets(line, MAX_LINE_LENGTH, file) != NULL)
     {   
-        processLine(line, DC, IC, st);
+        processLine(line, DC, IC, &st);
     }
 
+    printf("\nprint symbol table:::\n");
+    printSymbols(&st);
     return 0; 
 }
 
@@ -52,7 +53,7 @@ int startFirstProcess(char *asmblerOpenFile)
     if there is an error - the function will return 1. 
     that's how the program will know to not preduce the files at the end. 
 */
-int processLine(char *line, int DC, int IC, SymbolTable symbolTable)
+int processLine(char *line, int DC, int IC, SymbolTable *st)
 {
     enum Flag flag = START;
     size_t pLen; /* for checking the if it's a lable */
@@ -190,7 +191,7 @@ int processLine(char *line, int DC, int IC, SymbolTable symbolTable)
                     }
 
                     printf("mdefine: %s = %d\n", defineName, number);
-                    addSymbol(defineName,"mdefine",number);
+                    addSymbol(st,defineName,"mdefine",number);
                     free(defineName);
                 }
                 else{

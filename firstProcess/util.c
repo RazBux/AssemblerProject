@@ -89,12 +89,13 @@ void freeSymbolTable(SymbolTable **st) {
  * @param filename The name of the file to write to.
  */
 void writeSymbolTableToFile(const SymbolTable *st, const char *filename) {
+    size_t i;
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
         printf("Error opening file\n");
         return;
     }
-    for (size_t i = 0; i < st->symbolCount; i++) {
+    for (i = 0; i < st->symbolCount; i++) {
         fprintf(file, "Symbol: %s, Prop: %s, Val: %d\n",
                 st->symbols[i].symbol, st->symbols[i].prop, st->symbols[i].val);
     }
