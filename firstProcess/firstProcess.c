@@ -37,6 +37,7 @@ int startFirstProcess(char *asmblerOpenFile)
 
     printf("\nprint symbol table:::\n");
     printSymbols(&st);
+    printf("merge to main");
     return 0; 
 }
 
