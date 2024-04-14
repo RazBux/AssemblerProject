@@ -46,10 +46,16 @@ void freeSymbolTable(SymbolTable **st);
 /* Write all the symbol to file after finish to collect them and there is no error during the second run */
 void writeSymbolTableToFile(const SymbolTable *st, const char *filename);
 
-/* Check if the word is an opCode */
-int isOpCode(char* word);
+/* addDefine*/
+int addDefine(char *line, SymbolTable *st);
+
+/* Check if the word is a saved word */
+int checkWord(const char *word);
 
 /* Print the binary represention of a number, the number is spreding on 12 bytes. the last 2 bytes are 00 */
 void printBinary14(unsigned int number);
+
+
+
 
 #endif /* INSTRUCTION_UTILS_H */

@@ -4,6 +4,37 @@
 #include "../globVal/glob_val.h"
 #include "util.h"
 
+
+/* Define a constant array of saved words */
+const char* saved_words[] = {
+    /* G:1 commands - 2 operands */
+    "mov", "cmp", "add", "sub", "lea",
+    /* G:2 commands - 1 operand */
+    "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr",
+    /* G:3 commands - no operands */
+    "rts", "hlt",
+    /* Register names */
+    "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
+    NULL  /* Sentinel to mark the end of the array */
+};
+
+/**
+ * Checks if a given word is in the array of saved words.
+ * 
+ * @param word The word to check against the saved words.
+ * @return Returns 1 if the word is found, 0 otherwise.
+ */
+int checkWord(const char *word) {
+    int i = 0;
+    while (saved_words[i] != NULL) { /* Iterate over the array until the sentinel NULL is found */
+        if (strcmp(saved_words[i], word) == 0) {
+            return 1; /* Word is found in the array */
+        }
+        i++;
+    }
+    return 0; /* Word is not found */
+}
+
 /**
  * Adds a new symbol along with its properties and value to the SymbolTable.
  * This function dynamically resizes the symbol array within the SymbolTable to accommodate the new symbol.
@@ -13,6 +44,7 @@
  * @param val The integer value associated with the symbol.
  */
 void addSymbol(SymbolTable *st, char *symbol, char *prop, int val) {
+    /* if the symbol is new - create it */ 
     /* Resize the symbols array to accommodate one more Symbol */
     Symbol *newArray = (Symbol *)realloc(st->symbols, (st->symbolCount + 1) * sizeof(Symbol));
     if (newArray == NULL) {
@@ -62,6 +94,7 @@ int hasSymbol(const SymbolTable *st, const char* name) {
     size_t i;
     for (i = 0; i < st->symbolCount; i++) {
         if (strcmp(st->symbols[i].symbol, name) == 0) {
+            printf("Error: %s is already in the symbol table", name); 
             return 1;
         }
     }
@@ -102,8 +135,73 @@ void writeSymbolTableToFile(const SymbolTable *st, const char *filename) {
     fclose(file);
 }
 
+
+/**
+ * Processes a line assumed to define a symbol with a constant value,
+ * checking for format correctness and adding the symbol to a symbol table
+ * if it does not already exist.
+ *
+ * @param line The line of text to process.
+ * @param delimiters The delimiter characters used to tokenize the line.
+ * @param st Pointer to the SymbolTable where the symbol will be added.
+ */
+int addDefine(char *p, SymbolTable *st) {
+    int number; /* To store converted number from string */
+    char *defineName; /* To store the symbol name dynamically */
+    char delimiters[] = " \t\n";
+
+    /* Get the first token which should be the symbol name */
+    p = strtok(NULL, delimiters);
+
+    /* Check if the name is a valid identifier */
+    if (checkWord(p) == 0) {
+        /* Allocate memory for the name of the define */
+        defineName = (char *)malloc(strlen(p) + 1); /* +1 for null terminator */
+        if (defineName == NULL) {
+            printf("Error: Memory allocation failed\n");
+            return -1;
+        }
+        strcpy(defineName, p);
+
+        /* Expect '=' as the next token */
+        p = strtok(NULL, delimiters);
+        if (!(p && strlen(p) == 1 && *p == '=')) {
+            printf("Error: Expected '=', found '%s'\n", p);
+            free(defineName);
+            return -1;
+        }
+
+        /* Next token should be a numeric value */
+        p = strtok(NULL, delimiters);
+        if (!p || sscanf(p, "%d", &number) != 1) {
+            printf("Error: Expected integer, found '%s'\n", p);
+            free(defineName);
+            return -1;
+        }
+
+        /* Output for debugging or confirmation */
+        printf("mdefine: %s = %d\n", defineName, number);
+
+        /* Add symbol to table if it does not already exist */
+        if (!hasSymbol(st, defineName)) {
+            addSymbol(st, defineName, "mdefine", number);
+        } else {
+            printf("Error: Symbol '%s' already exists in the symbol table\n", defineName);
+            return -1;
+        }
+
+        /* Free allocated memory for the symbol name */
+        free(defineName);
+        return 0;
+    } else {
+        printf("Error: Invalid symbol name, saved word arn't allowed.'%s'\n", p);
+        return -1;
+    }
+}
+
+
 /* Function to check if a word is in saved_words */
-int isOpCode(char* word){
+int isOpCode(char* word, char** saved_words){
     int i;
     const char* saved_words[] = {
     /*G:1 command - 2 operands*/ 
@@ -114,7 +212,7 @@ int isOpCode(char* word){
     , "rts", "hlt"
 
     /* Register names maybe not need to be include. maybe only for checks */
-    /*,"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"*/
+    ,"r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7"
     };
 
     int numWords = sizeof(saved_words) / sizeof(saved_words[0]);
