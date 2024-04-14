@@ -6,10 +6,10 @@
 #include "util.h"
 #include "../globVal/glob_val.h"
 
-int processLine(char *);
+int processLine(char *, int, int, SymbolTable);
 int startFirstProcess(char *);
 int checkIfValidName(char *);
-int addToSymbolTable(char*, int);
+int addToSymbolTable(char*, char*, int);
 
 int startFirstProcess(char *asmblerOpenFile)
 {
@@ -23,13 +23,20 @@ int startFirstProcess(char *asmblerOpenFile)
         return -1;
     }
 
+    /* creaet counters for tracking the code and instruction */
+    int DC = 0; /* Data counter */
+    int IC = 0; /* Instruction counter */
+    /* create symbol table */ 
+    SymbolTable st;
+    initSymbolTable(&st);  /* Initialize the symbol table */ 
+
     /*start processing line by line*/
     while (fgets(line, MAX_LINE_LENGTH, file) != NULL)
-    {
-        processLine(line);
+    {   
+        processLine(line, DC, IC, st);
     }
 
-    return 0;
+    return 0; 
 }
 
 /*
@@ -45,7 +52,7 @@ int startFirstProcess(char *asmblerOpenFile)
     if there is an error - the function will return 1. 
     that's how the program will know to not preduce the files at the end. 
 */
-int processLine(char *line)
+int processLine(char *line, int DC, int IC, SymbolTable symbolTable)
 {
     enum Flag flag = START;
     size_t pLen; /* for checking the if it's a lable */
@@ -57,7 +64,7 @@ int processLine(char *line)
     if (line[0] == '\0' || strspn(line, " \t\n") == strlen(line))
     {
         printf("Empty or whitespace-only line\n");
-        return 0; /* Return immediately if the line is empty */
+        return 0; /* Return immediately if it's an empty line */
     }
 
     /*2: check if the first char is ; meaning its a comment line */
@@ -67,6 +74,7 @@ int processLine(char *line)
         printf("Comment line: %s\n", line);
         return 0; /* Return immediately if the line is a comment */
     }
+
 
     p = strtok(line, delimiters);
 
@@ -104,6 +112,7 @@ int processLine(char *line)
             free(label);  /*free the lable memory*/
             flag = LABEL; /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
         }
+
         /* if it's a directive line */
         else if (*p == '.')
         {
@@ -181,7 +190,7 @@ int processLine(char *line)
                     }
 
                     printf("mdefine: %s = %d\n", defineName, number);
-                    addToSymbolTable(defineName,number);
+                    addSymbol(defineName,"mdefine",number);
                     free(defineName);
                 }
                 else{
@@ -194,7 +203,7 @@ int processLine(char *line)
                 printf("Error: this directive command doesn't exsist!\n");
             }
         }
-        else if (is_op_code(p) == 0)
+        else if (isOpCode(p) == 0)
         {
             if (flag == LABEL){
                 printf("code:: ");
@@ -243,8 +252,9 @@ int checkIfValidName(char *newLableName)
     return 0;
 }
 
-int addToSymbolTable(char* defineName, int number){
+int addToSymbolTable(char* defineName,char* prop, int number){
     /*add the define the the table of symbols*/
+
     return 0;
 }
 

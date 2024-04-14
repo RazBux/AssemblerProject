@@ -14,12 +14,17 @@ typedef struct {
     char *symbol;
     char *prop;
     int val;
+} Symbol;
+
+typedef struct {
+    Symbol *symbols;  /* Dynamic array of symbols */
+    size_t symbolCount;  /* Number of symbols */ 
 } SymbolTable;
 
 /* Functions prototypes */
 
-/* Initializes a symbol table array and its count */
-void initSymbolTable(SymbolTable *symbolArray, size_t symbolCount);
+/* function for init the symbol table */
+void initSymbolTable(SymbolTable *st);
 
 /* Adds a new symbol to the symbol table array */
 void addSymbol(SymbolTable *symbolArray, size_t symbolCount, char* symbol, char* prop, int val);
