@@ -8,8 +8,7 @@
 
 int processLine(char *, int, int, SymbolTable *);
 int startFirstProcess(char *);
-int checkIfValidName(char *);
-int addToSymbolTable(char *, char *, int);
+int isOpCode(char *word);
 
 int startFirstProcess(char *asmblerOpenFile)
 {
@@ -77,18 +76,17 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
         return 0; /* Return immediately if the line is a comment */
     }
 
-
-    
     p = strtok(line, delimiters);
 
     /* Tokenize the line */
     while (p != NULL)
     {
         pLen = strlen(p);
-        
+
         /* Define check:
              if it's a define add it to the symbol table */
-        if (strcmp(p, ".define") == 0){
+        if (strcmp(p, ".define") == 0)
+        {
             return addDefine(p, st);
         }
 
@@ -111,17 +109,30 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                 strncpy(label, p, pLen - 1);
                 printf("LABLE: %s\n", label);
             }
-            if (checkIfValidName(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
+            if (checkWord(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
             {
                 printf("Valid lable name -> add \"%s\" to lable matrix\n", label);
-                /*
-                    addLableToMetrix(label);
-                */
+                p = strtok(NULL, delimiters); /* Get the next word-token */
+                printf("P === \"%s\"\n", p);
+                /*check what is the next word and if it's code or data*/
+                if (*p == '.' && (strcmp(p, ".data") == 0 || strcmp(p, ".string") == 0))
+                {
+                    addSymbol(st, label, "data", DC);
+                }
+                else if (isOpCode(p) == 0)
+                {
+                    addSymbol(st, label, "code", DC);
+                }
+            }
+            else{
+                return -1; /* there is an error with the lable name */
             }
             free(label);  /*free the lable memory*/
             flag = LABEL; /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
         }
 
+        /* After checking the start word of the line, and add it to the symbol table
+            if needed - this part of code will ganarate the machine code of the asmbler */
         /* if it's a directive line */
         if (*p == '.')
         {
@@ -143,7 +154,7 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                         if (countData == 0)
                         {
                             printf("ERROR: there is no data after the .data\n");
-                            return -1; 
+                            return -1;
                         }
                     }
                     else
@@ -185,6 +196,7 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
             if (flag == LABEL)
             {
                 printf("code:: ");
+                /* enter it to the flag symbol */
             }
             /* add here the opcode and all the processing for the operands */
             printf("OP_CODE:%s\n", p);
@@ -206,22 +218,6 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
         flag = NUM_OF_FLAG;
     }
     printf("\n");
-
-    return 0;
-}
-
-/* Function to check if the new lable is already assige before. if so, it is an error
-    -----> also add here that the names can be name of instruction and cannot be names of registers */
-int checkIfValidName(char *newLableName)
-{
-    /*check if it's no a define or lable - p39*/
-    return 0;
-    /*add here the checking*/
-    if (newLableName == NULL)
-    {
-
-        printf("error: There is all ready lable with this name");
-    }
 
     return 0;
 }
