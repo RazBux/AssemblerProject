@@ -55,7 +55,8 @@ int checkWord(const char *word);
 /* Print the binary represention of a number, the number is spreding on 12 bytes. the last 2 bytes are 00 */
 void printBinary14(unsigned int number);
 
+int isOpCode(char *word);
 
-
+void normalizeString(char *input);
 
 #endif /* INSTRUCTION_UTILS_H */
