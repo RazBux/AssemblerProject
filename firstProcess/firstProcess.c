@@ -7,11 +7,12 @@
 #include "../globVal/glob_val.h"
 
 int processLine(char *, int, int, SymbolTable *);
-int startFirstProcess(char *);
+int startFirstProcess(char *, char *);
 
-int startFirstProcess(char *asmblerOpenFile)
+int startFirstProcess(char *asmblerOpenFile, char *newFile)
 {
     FILE *file = fopen(asmblerOpenFile, "r");
+    // FILE *newFile = fopen(newFile, "w");
     char line[MAX_LINE_LENGTH];
     /* creaet counters for tracking the code and instruction */
     int DC = 0; /* Data counter */
@@ -35,7 +36,6 @@ int startFirstProcess(char *asmblerOpenFile)
 
     printf("\nprint symbol table:::\n");
     printSymbols(&st);
-    printf("merge to main");
     return 0;
 }
 
@@ -75,9 +75,10 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
         return 0; /* Return immediately if the line is a comment */
     }
 
-    printf("before normal: %s\n",line);
+    /* connect ',' to be w.o spaces between them, before:"6 , -9 , len" after:"6,-9,len" */
     normalizeString(line);
-    printf("normal string: %s\n\n", line);
+    printf("line >>> %s\n", line);
+    /* get the fisrt word from line */
     p = strtok(line, delimiters);
 
     /* Tokenize the line */
@@ -109,13 +110,11 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
             if (label != NULL)
             { /*if the alloction is was successful*/
                 strncpy(label, p, pLen - 1);
-                printf("LABLE: %s\n", label);
+                printf("LABLE: %s. > ", label);
             }
             if (checkWord(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
             {
-                printf("Valid lable name -> add \"%s\" to lable matrix\n", label);
                 p = strtok(NULL, delimiters); /* Get the next word-token */
-                printf("P === \"%s\"\n", p);
                 /*check what is the next word and if it's code or data*/
                 if (*p == '.' && (strcmp(p, ".data") == 0 || strcmp(p, ".string") == 0))
                 {
@@ -139,10 +138,11 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
         /* if it's a directive line */
         if (*p == '.')
         {
+            /* do we need falg ??? 
             if (flag == LABEL)
             {
                 printf("data:: ");
-            }
+            }*/
             printf("DIR: %s\n", p);
             /* check witch of the cases it is */
             if (strcmp(p, ".data") == 0)
@@ -151,22 +151,31 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                 p = strtok(NULL, delimiters);
                 /* use while loop to exstract all the data into array */
                 while (p != NULL)
-                {
-                    if (p == NULL) /*meaning there is no other word after the .data*/
-                    {
-                        if (countData == 0)
-                        {
-                            printf("ERROR: there is no data after the .data\n");
+                {   
+                    char *word = NULL;
+                    /* converting each word to int and into 14 binaty */
+                    if (isInteger(p)){
+                        word = BinaryString14(atoi(p));
+                    }
+                    else {
+                        int num = getSymbolValue(st, p); /* if there is symbol - retunrn it's index */
+                        if (num == -1){
+                            printf("Error: %s is invalid type of data = %d\n", p, num);
                             return -1;
                         }
+                        
+                        word = BinaryString14(st->symbols[num].val);
                     }
-                    else
-                    {
-                        printf("DATA: %s\n", p);
-                        countData++;
-                    }
-                    p = strtok(NULL, ",");
+                    countData++;
+                    /*get the next value*/
+                    p = strtok(NULL, ", \n");
                 }
+                if (countData == 0)
+                {
+                    printf("ERROR: there is no data after the .data\n");
+                    return -1;
+                }
+                DC += countData;
             }
             else if (strcmp(p, ".string") == 0)
             {
@@ -229,7 +238,9 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
 int main(void)
 {
     char outputFileName[] = "/Users/razbuxboim/Desktop/University/Open University semesters/2024/2024 a/מעבדה בתכנות מערכות/AsmblerProject/preAsmbler/textFiles/m.am";
-    startFirstProcess(outputFileName);
+    char newFileWord[] = "/Users/razbuxboim/Desktop/University/Open University semesters/2024/2024 a/מעבדה בתכנות מערכות/AsmblerProject/preAsmbler/textFiles/word.text";
+    startFirstProcess(outputFileName, newFileWord);
 
     return 0;
 }
+

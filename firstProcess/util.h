@@ -53,10 +53,16 @@ int addDefine(char *line, SymbolTable *st);
 int checkWord(const char *word);
 
 /* Print the binary represention of a number, the number is spreding on 12 bytes. the last 2 bytes are 00 */
-void printBinary14(unsigned int number);
+char* BinaryString14(int number);
+
+int isInteger(const char *str);
+
+int getSymbolValue(const SymbolTable *st, const char *name);
 
 int isOpCode(char *word);
 
 void normalizeString(char *input);
+
+int writeToFile(FILE file, char* word);
 
 #endif /* INSTRUCTION_UTILS_H */

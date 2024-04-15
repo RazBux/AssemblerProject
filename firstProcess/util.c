@@ -52,7 +52,7 @@ void addSymbol(SymbolTable *st, char *symbol, char *prop, int val)
     /* if the symbol is new - create it */
     /* Resize the symbols array to accommodate one more Symbol */
     Symbol *newArray = (Symbol *)realloc(st->symbols, (st->symbolCount + 1) * sizeof(Symbol));
-    printf("Added to ST >> %s, %s, %d\n", symbol,prop, val);
+    printf("Added to ST >> %s, %s, %d\n", symbol, prop, val);
     if (newArray == NULL)
     {
         /* Handle realloc failure */
@@ -87,19 +87,20 @@ void initSymbolTable(SymbolTable *st)
 void printSymbols(const SymbolTable *st)
 {
     size_t i;
-    int symbolWidth = 10;   
-    int propWidth = 10;     
-    int valueWidth = 10;    
+    int symbolWidth = 10;
+    int propWidth = 10;
+    int valueWidth = 10;
     /* Print header */
     int len = printf("%-*s %-*s %-*s\n", symbolWidth, "Symbol", propWidth, "Property", valueWidth, "Value");
-    
+
     /* Print dashes '-' for the length of the printed line */
-    for (i = 0; i < len - 5; i++) {
+    for (i = 0; i < len - 5; i++)
+    {
         printf("-");
     }
     printf("\n");
 
-    /* Print each symbol in the table */ 
+    /* Print each symbol in the table */
     for (i = 0; i < st->symbolCount; i++)
     {
         printf("%-*s %-*s %-*d\n",
@@ -108,7 +109,7 @@ void printSymbols(const SymbolTable *st)
                valueWidth, st->symbols[i].val);
     }
 }
-/* 
+/*
 void printSymbols(const SymbolTable *st)
 {
     size_t i;
@@ -119,8 +120,6 @@ void printSymbols(const SymbolTable *st)
     }
 }
 */
-
-
 
 /**
  * Checks if a symbol exists in the SymbolTable.
@@ -140,6 +139,29 @@ int hasSymbol(const SymbolTable *st, const char *name)
         }
     }
     return 0;
+}
+
+/**
+ * Checks if a symbol exists in the SymbolTable and returns a pointer to its value.
+ * @param st A pointer to the SymbolTable.
+ * @param name The name of the symbol to check.
+ * @return Pointer to the value of the symbol if it exists, NULL otherwise.
+ */
+int getSymbolValue(const SymbolTable *st, const char *name)
+{
+    size_t i;
+    for (i = 0; i < st->symbolCount; i++)
+    {
+        /*
+        printf("symbol:%s\n", st->symbols[i].symbol);
+        printf("name:%s\n", name);
+        */
+        if (strcmp(st->symbols[i].symbol, name) == 0)
+        {
+            return i; /* Return the address of the symbol's value */
+        }
+    }
+    return -1; /* Return NULL if the symbol is not found */
 }
 
 /**
@@ -264,8 +286,7 @@ int isOpCode(char *word)
         /*G:2 command - 1 operands*/
         "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr",
         /*G:3 no operands */
-        "rts", "hlt"
-    };
+        "rts", "hlt"};
 
     int numWords = sizeof(saved_words) / sizeof(saved_words[0]);
     for (i = 0; i < numWords; i++)
@@ -278,34 +299,72 @@ int isOpCode(char *word)
     return 1; /* no match found */
 }
 
-/* Function to print the binary representation of a number's
-    leave the 2 last bit 00 as wanted in the project */
-void printBinary14(unsigned int number)
+/**
+ * Prints the 14 most significant bits of an integer in binary.
+ * @param number The integer whose binary representation is to be printed.
+ */
+char *BinaryString14(int number)
 {
-    unsigned int mask = 1 << 11; /*Start with the most significant bit of the 12-bit portion*/
     int i;
-    for (i = 0; i < 12; i++)
-    { /*Iterate through the first 12 bits*/
-        if (number & mask)
-        {
-            printf("1");
-        }
-        else
-        {
-            printf("0");
-        }
-        mask >>= 1; /*Move the mask to the next bit*/
+    static char binaryStr[14]; /* 14 bits plus null terminator */
+    int mask = 1 << 13;        /* Start with the most significant bit of the 14-bit portion */
+
+    for (i = 0; i < 14; i++)
+    {
+        binaryStr[i] = (number & mask) ? '1' : '0';
+        mask >>= 1; /* Move the mask to the next bit */
+    }
+    printf("No.%d ,Binary == %s\n", number, binaryStr);
+    return binaryStr;
+}
+
+
+/**
+ * Checks if a string represents a valid integer. The function accounts for leading whitespace,
+ * an optional plus or minus sign, and numeric characters.
+ *
+ * @param str A pointer to a null-terminated string to be checked.
+ * @return Returns 1 if the string is a valid integer representation, 0 otherwise.
+ */
+int isInteger(const char *str)
+{
+    /* Skip leading whitespace */
+    while (isspace((unsigned char)*str))
+    {
+        str++;
     }
 
-    /*Print the last two bits as 0*/
-    printf("00");
+    /* Optional leading + or - sign */
+    if (*str == '+' || *str == '-')
+    {
+        str++;
+    }
+
+    /* Check for empty string or just a sign without digits */
+    if (*str == '\0')
+    {
+        return 0;
+    }
+
+    /* Check for numeric characters */
+    while (*str)
+    {
+        if (!isdigit((unsigned char)*str))
+        {
+            return 0; /* Non-digit character found */
+        }
+        str++;
+    }
+
+    return 1; /* Only digits (possibly with leading sign and whitespace) were found */
 }
+
 
 /**
  * Normalizes a given string in-place by removing all spaces directly before and after commas.
  * This function ensures that no spaces surround any commas in the string, while maintaining
  * other parts of the string unchanged.
- * 
+ *
  * @param input The modifiable input string that may contain extra spaces around commas.
  */
 void normalizeString(char *input) {
@@ -329,14 +388,20 @@ void normalizeString(char *input) {
             /* Skip all spaces following the comma */
             while (input[i] == ' ') {
                 i++;
-            }
+            }            
         } else {
             input[j++] = input[i]; /* Copy the character to the 'output' */
             lastNonSpace = j - 1; /* Update last non-space character position */
             i++;
         }
     }
-
+    
     input[j] = '\0'; /* Null-terminate the modified string */
+    printf("input: %s \n",input);
+
 }
 
+int writeToFile(FILE file, char* word){
+    printf("write %s into file", word);
+    return 0;
+}
