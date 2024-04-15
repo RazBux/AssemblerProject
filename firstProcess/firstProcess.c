@@ -8,8 +8,7 @@
 
 int processLine(char *, int, int, SymbolTable *);
 int startFirstProcess(char *);
-int checkIfValidName(char *);
-int addToSymbolTable(char*, char*, int);
+int isOpCode(char *word);
 
 int startFirstProcess(char *asmblerOpenFile)
 {
@@ -18,9 +17,9 @@ int startFirstProcess(char *asmblerOpenFile)
     /* creaet counters for tracking the code and instruction */
     int DC = 0; /* Data counter */
     int IC = 0; /* Instruction counter */
-    /* create symbol table */ 
+    /* create symbol table */
     SymbolTable st;
-    initSymbolTable(&st);  /* Initialize the symbol table */ 
+    initSymbolTable(&st); /* Initialize the symbol table */
 
     /*check if the file is opened*/
     if (!file)
@@ -31,14 +30,14 @@ int startFirstProcess(char *asmblerOpenFile)
 
     /*start processing line by line*/
     while (fgets(line, MAX_LINE_LENGTH, file) != NULL)
-    {   
+    {
         processLine(line, DC, IC, &st);
     }
 
     printf("\nprint symbol table:::\n");
     printSymbols(&st);
     printf("merge to main");
-    return 0; 
+    return 0;
 }
 
 /*
@@ -51,8 +50,8 @@ int startFirstProcess(char *asmblerOpenFile)
     4: instruction: line that preduce a binary for the machine
     5: defining constent: creating a const variable
 
-    if there is an error - the function will return 1. 
-    that's how the program will know to not preduce the files at the end. 
+    if there is an error - the function will return 1.
+    that's how the program will know to not preduce the files at the end.
 */
 int processLine(char *line, int DC, int IC, SymbolTable *st)
 {
@@ -77,7 +76,6 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
         return 0; /* Return immediately if the line is a comment */
     }
 
-
     p = strtok(line, delimiters);
 
     /* Tokenize the line */
@@ -85,10 +83,17 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
     {
         pLen = strlen(p);
 
+        /* Define check:
+             if it's a define add it to the symbol table */
+        if (strcmp(p, ".define") == 0)
+        {
+            return addDefine(p, st);
+        }
+
         /* Lable check:
             if there is a lable in the first word,
             by see if the last char is ":" */
-        if (flag == START && *(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
+        else if (flag == START && *(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
         {
             char *label;
             /*if the first char of the lable isnt a char - raise an error/flag*/
@@ -104,21 +109,35 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                 strncpy(label, p, pLen - 1);
                 printf("LABLE: %s\n", label);
             }
-            if (checkIfValidName(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
+            if (checkWord(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
             {
                 printf("Valid lable name -> add \"%s\" to lable matrix\n", label);
-                /*
-                    addLableToMetrix(label);
-                */
+                p = strtok(NULL, delimiters); /* Get the next word-token */
+                printf("P === \"%s\"\n", p);
+                /*check what is the next word and if it's code or data*/
+                if (*p == '.' && (strcmp(p, ".data") == 0 || strcmp(p, ".string") == 0))
+                {
+                    addSymbol(st, label, "data", DC);
+                }
+                else if (isOpCode(p) == 0)
+                {
+                    addSymbol(st, label, "code", DC);
+                }
+            }
+            else{
+                return -1; /* there is an error with the lable name */
             }
             free(label);  /*free the lable memory*/
             flag = LABEL; /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
         }
 
+        /* After checking the start word of the line, and add it to the symbol table
+            if needed - this part of code will ganarate the machine code of the asmbler */
         /* if it's a directive line */
-        else if (*p == '.')
+        if (*p == '.')
         {
-            if (flag == LABEL){
+            if (flag == LABEL)
+            {
                 printf("data:: ");
             }
             printf("DIR: %s\n", p);
@@ -135,6 +154,7 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                         if (countData == 0)
                         {
                             printf("ERROR: there is no data after the .data\n");
+                            return -1;
                         }
                     }
                     else
@@ -143,7 +163,6 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                         countData++;
                     }
                 }
-
             }
             else if (strcmp(p, ".string") == 0)
             {
@@ -157,6 +176,7 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                 else
                 {
                     printf("Error: no \" at the start or finish of .string for %s\"\n", p);
+                    return -1;
                 }
             }
             /* the asmbler need to ignore this line and will print worning massage */
@@ -164,40 +184,6 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
             {
                 printf("Worning: %s ", p);
                 return 0;
-            }
-            else if (strcmp(p, ".define") == 0){
-                /* in case of define -> should be 'name' = 'number' and the name need to be in the sembol table */
-                int number;
-                char* defineName; 
-                
-                p = strtok(NULL, delimiters);
-                
-                /*check if the name is a uniqe name*/
-                if(checkIfValidName(p) == 0){
-                    /*allocate memory to the name of the define*/
-                    defineName = (char *)malloc(strlen(p));
-                    strcpy(defineName, p);
-                    
-                    /*see if the next value is '='*/
-                    p = strtok(NULL, delimiters);
-                    if (!(strlen(p) == 1 && *p == '=')){
-                        printf("%s isn't a '=' as sould be when defining a constent\n", p);
-                    }
-
-                    /*check if it's a number*/
-                    p = strtok(NULL, delimiters);
-                    number = atoi(p); /*converting string to int number*/
-                    if(!(number >= INT_MIN && number <= INT_MAX)){
-                        printf("%s isn't int, pls use number when defining a constent\n",p);
-                    }
-
-                    printf("mdefine: %s = %d\n", defineName, number);
-                    addSymbol(st,defineName,"mdefine",number);
-                    free(defineName);
-                }
-                else{
-                    printf("'%s' is alredy defined pls use another name insted\n", p);
-                }
             }
             /* if it is not a valid directive name -> error */
             else
@@ -207,8 +193,10 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
         }
         else if (isOpCode(p) == 0)
         {
-            if (flag == LABEL){
+            if (flag == LABEL)
+            {
                 printf("code:: ");
+                /* enter it to the flag symbol */
             }
             /* add here the opcode and all the processing for the operands */
             printf("OP_CODE:%s\n", p);
@@ -220,12 +208,7 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                     printf("OC: %s\n", p);
                 }
             }
-            
         }
-        /*add here in cases where there is lables or defining that used.*/
-        /*else if(){
-
-        }*/
         else
         {
             printf("Token: %s\n", p); /* Print each token */
@@ -238,28 +221,6 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
 
     return 0;
 }
-
-/* Function to check if the new lable is already assige before. if so, it is an error*/
-int checkIfValidName(char *newLableName)
-{
-    /*check if it's no a define or lable - p39*/
-    return 0;
-    /*add here the checking*/
-    if (newLableName == NULL)
-    {
-
-        printf("error: There is all ready lable with this name");
-    }
-
-    return 0;
-}
-
-int addToSymbolTable(char* defineName,char* prop, int number){
-    /*add the define the the table of symbols*/
-
-    return 0;
-}
-
 
 int main(void)
 {
