@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>]
+#include <ctype.h>
 # include "../globVal/glob_val.h"
 
 /* Initialize macro storage */
@@ -278,8 +278,8 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
                 lineModified = 1;
             }
         }
-        if (!lineModified && strlen(line) > 1)
-        {                          /* To avoid writing empty lines */
+        if (!lineModified && strlen(line) > 1) /* To avoid writing empty lines */
+        {                         
             fputs(line, tempFile); /* Write the line as it is if not modified */
         }
     }
