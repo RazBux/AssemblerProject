@@ -8,7 +8,6 @@
 
 int processLine(char *, int, int, SymbolTable *);
 int startFirstProcess(char *);
-int isOpCode(char *word);
 
 int startFirstProcess(char *asmblerOpenFile)
 {
@@ -76,6 +75,9 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
         return 0; /* Return immediately if the line is a comment */
     }
 
+    printf("before normal: %s\n",line);
+    normalizeString(line);
+    printf("normal string: %s\n\n", line);
     p = strtok(line, delimiters);
 
     /* Tokenize the line */
@@ -124,7 +126,8 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                     addSymbol(st, label, "code", DC);
                 }
             }
-            else{
+            else
+            {
                 return -1; /* there is an error with the lable name */
             }
             free(label);  /*free the lable memory*/
@@ -145,10 +148,10 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
             if (strcmp(p, ".data") == 0)
             {
                 int countData = 0;
+                p = strtok(NULL, delimiters);
                 /* use while loop to exstract all the data into array */
                 while (p != NULL)
                 {
-                    p = strtok(NULL, delimiters);
                     if (p == NULL) /*meaning there is no other word after the .data*/
                     {
                         if (countData == 0)
@@ -162,6 +165,7 @@ int processLine(char *line, int DC, int IC, SymbolTable *st)
                         printf("DATA: %s\n", p);
                         countData++;
                     }
+                    p = strtok(NULL, ",");
                 }
             }
             else if (strcmp(p, ".string") == 0)

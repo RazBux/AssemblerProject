@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include "../globVal/glob_val.h"
 #include "util.h"
@@ -298,5 +299,44 @@ void printBinary14(unsigned int number)
 
     /*Print the last two bits as 0*/
     printf("00");
+}
+
+/**
+ * Normalizes a given string in-place by removing all spaces directly before and after commas.
+ * This function ensures that no spaces surround any commas in the string, while maintaining
+ * other parts of the string unchanged.
+ * 
+ * @param input The modifiable input string that may contain extra spaces around commas.
+ */
+void normalizeString(char *input) {
+    int i = 0, j = 0; /* Indexes for input and 'output' within the same string */
+    int lastNonSpace = -1; /* Track the last non-space character position */
+
+    while (input[i] != '\0') {
+        if (input[i] == ' ') {
+            /* Only add space to output if it is not potentially before a comma */
+            if (input[i + 1] != ',' && (i == 0 || input[i - 1] != ',')) {
+                input[j++] = input[i];
+            }
+            i++;
+        } else if (input[i] == ',') {
+            /* Adjust j to remove any spaces before the comma */
+            if (lastNonSpace >= 0 && lastNonSpace < j - 1) {
+                j = lastNonSpace + 1;
+            }
+            input[j++] = input[i]; /* Add the comma to the 'output' */
+            i++;
+            /* Skip all spaces following the comma */
+            while (input[i] == ' ') {
+                i++;
+            }
+        } else {
+            input[j++] = input[i]; /* Copy the character to the 'output' */
+            lastNonSpace = j - 1; /* Update last non-space character position */
+            i++;
+        }
+    }
+
+    input[j] = '\0'; /* Null-terminate the modified string */
 }
 
