@@ -299,25 +299,26 @@ int isOpCode(char *word)
     return 1; /* no match found */
 }
 
-/**
- * Prints the 14 most significant bits of an integer in binary.
- * @param number The integer whose binary representation is to be printed.
- */
-char *BinaryString14(int number)
+op_code getOpCode(const char *command)
 {
+    /*---try to make this static for reuseable*/
+    CommandMap commands[] = {
+    {"mov", mov}, {"cmp", cmp}, {"add", add}, {"sub", sub},
+    {"not", not}, {"clr", clr}, {"lea", lea}, {"inc", inc},
+    {"dec", dec}, {"jmp", jmp}, {"bne", bne}, {"red", red},
+    {"prn", prn}, {"jsr", jsr}, {"rts", rts}, {"hlt", hlt}
+    };
+    
     int i;
-    static char binaryStr[14]; /* 14 bits plus null terminator */
-    int mask = 1 << 13;        /* Start with the most significant bit of the 14-bit portion */
-
-    for (i = 0; i < 14; i++)
+    for (i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
     {
-        binaryStr[i] = (number & mask) ? '1' : '0';
-        mask >>= 1; /* Move the mask to the next bit */
+        if (strcmp(commands[i].name, command) == 0)
+        {
+            return commands[i].code; /* return the number value of this */
+        }
     }
-    printf("No.%d ,Binary == %s\n", number, binaryStr);
-    return binaryStr;
+    return -1; /* if it's not opcode */
 }
-
 
 /**
  * Checks if a string represents a valid integer. The function accounts for leading whitespace,
@@ -359,7 +360,6 @@ int isInteger(const char *str)
     return 1; /* Only digits (possibly with leading sign and whitespace) were found */
 }
 
-
 /**
  * Normalizes a given string in-place by removing all spaces directly before and after commas.
  * This function ensures that no spaces surround any commas in the string, while maintaining
@@ -367,41 +367,63 @@ int isInteger(const char *str)
  *
  * @param input The modifiable input string that may contain extra spaces around commas.
  */
-void normalizeString(char *input) {
-    int i = 0, j = 0; /* Indexes for input and 'output' within the same string */
+void normalizeString(char *input)
+{
+    int i = 0, j = 0;      /* Indexes for input and 'output' within the same string */
     int lastNonSpace = -1; /* Track the last non-space character position */
 
-    while (input[i] != '\0') {
-        if (input[i] == ' ') {
+    while (input[i] != '\0')
+    {
+        if (input[i] == ' ')
+        {
             /* Only add space to output if it is not potentially before a comma */
-            if (input[i + 1] != ',' && (i == 0 || input[i - 1] != ',')) {
+            if (input[i + 1] != ',' && (i == 0 || input[i - 1] != ','))
+            {
                 input[j++] = input[i];
             }
             i++;
-        } else if (input[i] == ',') {
+        }
+        else if (input[i] == ',')
+        {
             /* Adjust j to remove any spaces before the comma */
-            if (lastNonSpace >= 0 && lastNonSpace < j - 1) {
+            if (lastNonSpace >= 0 && lastNonSpace < j - 1)
+            {
                 j = lastNonSpace + 1;
             }
             input[j++] = input[i]; /* Add the comma to the 'output' */
             i++;
             /* Skip all spaces following the comma */
-            while (input[i] == ' ') {
+            while (input[i] == ' ')
+            {
                 i++;
-            }            
-        } else {
+            }
+        }
+        else
+        {
             input[j++] = input[i]; /* Copy the character to the 'output' */
-            lastNonSpace = j - 1; /* Update last non-space character position */
+            lastNonSpace = j - 1;  /* Update last non-space character position */
             i++;
         }
     }
-    
+
     input[j] = '\0'; /* Null-terminate the modified string */
-    printf("input: %s \n",input);
-
 }
 
-int writeToFile(FILE file, char* word){
-    printf("write %s into file", word);
-    return 0;
+int checkLable(char* lable){
+    int i;
+    /* the first char of a LABLE need to be alphaBatic */
+    if (!isalpha(*lable)){
+        return -1;
+    }
+
+    /* check all the character if they valid */
+    for (i = 1; i < strlen(lable); i++){
+        char c = *(lable +i);
+        if (!isalpha(c) && !isdigit(c)){
+            return -1;
+        }
+    }
+    return 1;
 }
+
+

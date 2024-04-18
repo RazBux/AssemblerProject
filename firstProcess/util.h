@@ -52,9 +52,6 @@ int addDefine(char *line, SymbolTable *st);
 /* Check if the word is a saved word */
 int checkWord(const char *word);
 
-/* Print the binary represention of a number, the number is spreding on 12 bytes. the last 2 bytes are 00 */
-char* BinaryString14(int number);
-
 int isInteger(const char *str);
 
 int getSymbolValue(const SymbolTable *st, const char *name);
@@ -63,6 +60,8 @@ int isOpCode(char *word);
 
 void normalizeString(char *input);
 
-int writeToFile(FILE file, char* word);
+op_code getOpCode(const char *command);
+
+int checkLable(char* lable);
 
 #endif /* INSTRUCTION_UTILS_H */
