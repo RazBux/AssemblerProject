@@ -115,7 +115,7 @@ int processLine(char *line, int DC, int IC, SymbolTable *st, FILE *outputFile)
                 printf("LABLE: %s > ", label);
             }
             /* check for valid lable name */
-            if (!checkLable(label))
+            if (!isValidLable(label))
             {
                 printf("Error, %c isn't valid for the LABLE roles\n", *label);
                 return -1;
@@ -180,7 +180,7 @@ int processLine(char *line, int DC, int IC, SymbolTable *st, FILE *outputFile)
                     }
                     else
                     {
-                        int num = getSymbolValue(st, p); /* if there is symbol - retunrn it's index */
+                        int num = getSymbolIndex(st, p); /* if there is symbol - retunrn it's index */
                         if (num == -1)
                         {
                             printf("Error: %s is invalid type of data = %d\n", p, num);
@@ -340,7 +340,7 @@ int checkAddressType(char *operand, SymbolTable *st)
         /* check if it's an mdefine */
         else
         {
-            int i = getSymbolValue(st, numberPart);
+            int i = getSymbolIndex(st, numberPart);
             if (i != -1 && strcmp(st->symbols[i].prop, "mdefine") == 0)
             {
                 printf("It's an mdefine ! addressing 0 \n");
@@ -354,7 +354,8 @@ int checkAddressType(char *operand, SymbolTable *st)
         printf("Register operand: %s\n", operand);
         return 3;
     }
-    /* Addressing no 2: '10' -  */
+    /* Addressing no 2: '10' - with lable[int/define]
+        ---> in the seconde run we schold check if the symbol exsist */
     else if (*(operand + strlen(operand) - 1) == ']')
     {
 
@@ -366,6 +367,7 @@ int checkAddressType(char *operand, SymbolTable *st)
             char *label = (char *)malloc((lableLen) + 1); /*pointer of [*/
             int indexLen;
             char *index;
+            int checkStDefine;
 
             strncpy(label, operand, lableLen);
             // label[lableLen] = '\0';
@@ -373,10 +375,10 @@ int checkAddressType(char *operand, SymbolTable *st)
             if (label == NULL)
             {
                 perror("Failed to allocate memory");
-                return -1;
+                exit(1);
             }
 
-            if (!checkLable(label)) /*check if it's an lable name*/
+            if (!isValidLable(label)) /*check if it's an lable name*/
             {
                 free(label);
                 return -1; /* there is problem with the lables... */
@@ -389,27 +391,30 @@ int checkAddressType(char *operand, SymbolTable *st)
             if (index == NULL)
             {
                 fprintf(stderr, "Memory allocation failed\n");
-                return -1;
+                exit(1);
             }
             strncpy(index, found + 1, indexLen);
             printf("Index:::::: %s\n", index);
-            if (!isdigit(index) || !strcmp(st->symbols[hasSymbol(st, index)].prop, "mdefine"))
-            {
-                printf("Error: %s ins't a digit or an .define", index);
-                return -1;
-            }
-            
+
             /* check the index for being define or integer */
             /* checkes if it's an .define */
-            int symbolIndex = hasSymbol(st, index);
-            if (symbolIndex > -1 && !strcmp(st->symbols[symbolIndex].prop, "mdefine"))
+            // int symbolIndex = getSymbolIndex(st, index);
+            // printf("symbol index :%d\n", getSymbolIndex(st, index));
+            // printf("%s symbol prop\n",st->symbols[getSymbolIndex(st, index)].prop);
+
+            checkStDefine = getSymbolIndex(st, index);
+            if (checkStDefine > -1)
             {
-                printf("Error: %s isn't a .define", index);
-                return -1;
+                printf("%s symbol prop\n", st->symbols[checkStDefine].prop);
+                if (strcmp(st->symbols[checkStDefine].prop, "mdefine") != 0)
+                {
+                    printf("Error: %s isn't a .define\n", index);
+                    return -1;
+                }
             }
             else if (!isInteger(index))
             {
-                printf("Error: %s isn't an integer", index);
+                printf("Error: %s isn't an integer\n", index);
                 return -1;
             }
 
@@ -419,12 +424,17 @@ int checkAddressType(char *operand, SymbolTable *st)
             return 2;
         }
     }
-    // /* Addressing no 1: '01' - getting the from data LABLE .string, .data, .extern */
-    // else if (){
+    /* Addressing no 1: '01' - getting the from data LABLE .string, .data, .extern */
+    /* soft check if it's can be a valid lable */
+    else if (isValidLable(operand))
+    {
+        printf("%s can be a valid lable\n", operand);
+        return 1;
+    }
 
-    // }
-
-    return -1; // Not starting with '#'
+    /* if it not one of the addressing type - return -1 = invalid type*/
+    printf("Error: invalid type of addressing\n");
+    return -1; // invalid addressing type
 }
 
 int main(void)

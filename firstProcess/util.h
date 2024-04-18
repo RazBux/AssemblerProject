@@ -54,7 +54,7 @@ int checkWord(const char *word);
 
 int isInteger(const char *str);
 
-int getSymbolValue(const SymbolTable *st, const char *name);
+int getSymbolIndex(const SymbolTable *st, const char *name);
 
 int isOpCode(char *word);
 
@@ -62,6 +62,6 @@ void normalizeString(char *input);
 
 op_code getOpCode(const char *command);
 
-int checkLable(char* lable);
+int isValidLable(char* lable);
 
 #endif /* INSTRUCTION_UTILS_H */

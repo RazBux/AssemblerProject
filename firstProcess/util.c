@@ -147,7 +147,7 @@ int hasSymbol(const SymbolTable *st, const char *name)
  * @param name The name of the symbol to check.
  * @return Pointer to the value of the symbol if it exists, NULL otherwise.
  */
-int getSymbolValue(const SymbolTable *st, const char *name)
+int getSymbolIndex(const SymbolTable *st, const char *name)
 {
     size_t i;
     for (i = 0; i < st->symbolCount; i++)
@@ -409,7 +409,7 @@ void normalizeString(char *input)
     input[j] = '\0'; /* Null-terminate the modified string */
 }
 
-int checkLable(char* lable){
+int isValidLable(char* lable){
     int i;
     /* the first char of a LABLE need to be alphaBatic */
     if (!isalpha(*lable)){
