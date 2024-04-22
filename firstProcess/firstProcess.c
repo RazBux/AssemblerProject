@@ -6,16 +6,17 @@
 #include "util.h"
 #include "printBinary.h"
 #include "../globVal/glob_val.h"
+#include "dataCodeTable.h"
 
 int checkAddressType(char *operand, SymbolTable *st);
-int processLine(char *, int, int, SymbolTable *, FILE *);
-int startFirstProcess(char *, char *);
+int processLine(char *, WordList *, WordList *, SymbolTable *, int *, int *);
+int startFirstProcess(char *, WordList *, WordList *);
 
-int startFirstProcess(char *asmblerOpenFile, char *newFile)
+int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table)
 {
     FILE *file = fopen(asmblerOpenFile, "r");
-    FILE *outputFile = fopen(newFile, "w");
     char line[MAX_LINE_LENGTH];
+
     /* creaet counters for tracking the code and instruction */
     int DC = 0; /* Data counter */
     int IC = 0; /* Instruction counter */
@@ -29,17 +30,11 @@ int startFirstProcess(char *asmblerOpenFile, char *newFile)
         perror("Open .am file - after open macro => failed");
         return -1;
     }
-    if (!outputFile)
-    {
-        perror("Failed to open output file");
-        fclose(file); /* close the input file before returning */
-        return -1;
-    }
 
     /*start processing line by line*/
     while (fgets(line, MAX_LINE_LENGTH, file) != NULL)
     {
-        processLine(line, DC, IC, &st, outputFile);
+        processLine(line, DC_table, IC_table, &st, &DC, &IC);
     }
 
     printf("\nprint symbol table:::\n");
@@ -60,7 +55,7 @@ int startFirstProcess(char *asmblerOpenFile, char *newFile)
     if there is an error - the function will return 1.
     that's how the program will know to not preduce the files at the end.
 */
-int processLine(char *line, int DC, int IC, SymbolTable *st, FILE *outputFile)
+int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable *st, int *DC, int *IC)
 {
     enum Flag flag = START;
     size_t pLen; /* for checking the if it's a lable */
@@ -126,11 +121,11 @@ int processLine(char *line, int DC, int IC, SymbolTable *st, FILE *outputFile)
                 /*check what is the next word and if it's code or data*/
                 if (*p == '.' && (strcmp(p, ".data") == 0 || strcmp(p, ".string") == 0))
                 {
-                    addSymbol(st, label, "data", DC);
+                    addSymbol(st, label, "data", *DC);
                 }
                 else if (isOpCode(p) == 0)
                 {
-                    addSymbol(st, label, "code", DC);
+                    addSymbol(st, label, "code", *IC);
                 }
                 else if (*p == '.' && (strcmp(p, ".entry") == 0 || strcmp(p, ".extern") == 0))
                 {
@@ -189,7 +184,9 @@ int processLine(char *line, int DC, int IC, SymbolTable *st, FILE *outputFile)
 
                         word = BinaryString14(st->symbols[num].val);
                     }
-                    fprintf(outputFile, "%s\n", word); /* write the word to File */
+
+                    addWord(DC_table, word); /*data table adding words*/
+
                     countData++;
                     p = strtok(NULL, ", \n"); /*get the next value*/
                 }
@@ -198,8 +195,8 @@ int processLine(char *line, int DC, int IC, SymbolTable *st, FILE *outputFile)
                     printf("ERROR: there is no data after the .data\n");
                     return -1;
                 }
-                DC += countData;
-                printf("DC %d", DC);
+                *DC += countData;
+                printf("DC %d", *DC);
             }
             else if (strcmp(p, ".string") == 0)
             {
@@ -213,12 +210,12 @@ int processLine(char *line, int DC, int IC, SymbolTable *st, FILE *outputFile)
                     /* Iterate from the second character to the second-to-last character */
                     for (s = 1; s < len - 1; s++)
                     {
-                        // BinaryString14(p[s]);
-                        fprintf(outputFile, "%s\n", BinaryString14(p[s]));
+                        addWord(DC_table, BinaryString14(p[s]));
                     }
-                    // BinaryString14('\0');
-                    fprintf(outputFile, "%s\n", BinaryString14('\0'));
-                    DC += len - 1; /* add 1 number for each charachter and 1 for the null */
+                    addWord(DC_table, BinaryString14('\0'));
+                    // fprintf(outputFile, "%s\n", BinaryString14('\0'));
+                    *DC += len - 1; /* add 1 number for each charachter and 1 for the null */
+                    printf("DC %d", *DC);
                 }
                 else
                 {
@@ -248,36 +245,62 @@ int processLine(char *line, int DC, int IC, SymbolTable *st, FILE *outputFile)
             if (strcmp("hlt", p) == 0 || strcmp("rts", p) == 0)
             {
                 fw.op_code = opC;
-                word = printFirstWordBinary(&fw);
+                word = getFirstWordBinary(&fw);
                 printf("fw binay: %s\n", word);
+                addWord(IC_table, word);
+                *IC += 1;
+
                 p = strtok(NULL, delimiters);
                 /*there is no word after the operand*/
                 if (p == NULL)
-                {
-                    IC += 1;
                     return 0;
-                }
             }
 
             /* G:2 commands - 1 operand */
             // "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr",
             else if (strcmp("clr", p) == 0 || strcmp("not", p) == 0 || strcmp("inc", p) == 0 || strcmp("jmp", p) == 0 || strcmp("bne", p) == 0 || strcmp("jsr", p) == 0 || strcmp("prn", p) == 0 || strcmp("red", p) == 0 || strcmp("dec", p) == 0)
             {
+                int addressType;
+                char *opName = (char *)malloc(strlen(p) + 1);
+                strcpy(opName, p);
+
                 p = strtok(NULL, delimiters); /*get the operande*/
 
                 /*check the number of words in it's -> and also see what the method of addressing*/
                 fw.op_code = opC;
-                fw.dest_op_addr = checkAddressType(p, st); /*get the type of the addressing*/
+                // fw.dest_op_addr = checkAddressType(p, st); /*get the type of the addressing*/
+                addressType = checkAddressType(p, st);
+                if (addressType == -1)
+                {
+                    printf("Error: exit line because of error in address type\n");
+                    return -1;
+                }
+                printf("operand %s addressType: %d\n\n", p, addressType);
 
                 /* check the addressing type and if it's valied */
-                /* "prn" --> 0,1,2,3*/
+                /* "prn" --> 0,1,2,3 : need no check because it's can be any thing */
 
                 /* "not, clr inc, dec, red" --> 1,2,3 */
-
+                if ((strcmp("not", opName) == 0 || strcmp("clr", opName) == 0 || strcmp("inc", opName) == 0 || strcmp("dec", opName) == 0 || strcmp("red", opName) == 0) && addressType == 0)
+                {
+                    printf("Error: the address type of %d isn't valid for this op code: %s\n", addressType, opName);
+                    return -1;
+                }
                 /* "jmp, bne, jsr" --> 1,3 */
+                else if ((strcmp("jmp", opName) == 0 || strcmp("bne", opName) == 0 || strcmp("jsr", opName) == 0) && (addressType == 0 || addressType == 2))
+                {
+                    printf("Error: the address type of %d isn't valid for this op code: %s\n", addressType, opName);
+                    return -1;
+                }
 
-                word = printFirstWordBinary(&fw);
+                word = getFirstWordBinary(&fw);
+                addWord(IC_table, word);
+                *IC += 1;
+                printf("code counter == %d\n", *IC);
+
                 /* keep printing the words for the operand */
+                addWord(IC_table, p);
+                printf("word::%s, p::%s\n\n", word, p);
 
                 /* count the number of code instruction */
                 // CI += ?;
@@ -286,13 +309,15 @@ int processLine(char *line, int DC, int IC, SymbolTable *st, FILE *outputFile)
                 p = strtok(NULL, delimiters);
                 if (p == NULL)
                 {
-                    /*IC += ?; add to here the count needed...*/
                     return 0;
                 }
                 else
                 {
                     printf("Error: %s operade allow only 1 after it.", p);
+                    return -1;
                 }
+
+                free(opName);
             }
 
             /* G:1 commands - 2 operands */
@@ -331,10 +356,10 @@ int checkAddressType(char *operand, SymbolTable *st)
     if (*operand == '#')
     {
         char *numberPart = operand + 1; // Skip the '#' to point to the next part
-        printf("number = %s\n", numberPart);
+        /*printf("number = %s\n", numberPart);*/
         if (isInteger(numberPart))
         {
-            printf("Is an integer ! addressing 0 \n");
+            /*printf("Is an integer ! addressing 0 \n");*/
             return 0;
         }
         /* check if it's an mdefine */
@@ -343,7 +368,7 @@ int checkAddressType(char *operand, SymbolTable *st)
             int i = getSymbolIndex(st, numberPart);
             if (i != -1 && strcmp(st->symbols[i].prop, "mdefine") == 0)
             {
-                printf("It's an mdefine ! addressing 0 \n");
+                /*printf("It's an mdefine ! addressing 0 \n");*/
                 return 0;
             }
         }
@@ -360,13 +385,12 @@ int checkAddressType(char *operand, SymbolTable *st)
     {
 
         const char *found = strchr(operand, '[');
-        printf("Found: %c\n", *found);
         if (found != NULL)
         {
             int lableLen = found - operand;               /*index of the [*/
             char *label = (char *)malloc((lableLen) + 1); /*pointer of [*/
-            int indexLen;
             char *index;
+            int indexLen;
             int checkStDefine;
 
             strncpy(label, operand, lableLen);
@@ -381,6 +405,7 @@ int checkAddressType(char *operand, SymbolTable *st)
             if (!isValidLable(label)) /*check if it's an lable name*/
             {
                 free(label);
+                printf("Error: invalid LABLE");
                 return -1; /* there is problem with the lables... */
             }
 
@@ -390,22 +415,14 @@ int checkAddressType(char *operand, SymbolTable *st)
 
             if (index == NULL)
             {
-                fprintf(stderr, "Memory allocation failed\n");
+                printf("Memory allocation failed\n");
                 exit(1);
             }
             strncpy(index, found + 1, indexLen);
-            printf("Index:::::: %s\n", index);
-
-            /* check the index for being define or integer */
-            /* checkes if it's an .define */
-            // int symbolIndex = getSymbolIndex(st, index);
-            // printf("symbol index :%d\n", getSymbolIndex(st, index));
-            // printf("%s symbol prop\n",st->symbols[getSymbolIndex(st, index)].prop);
 
             checkStDefine = getSymbolIndex(st, index);
             if (checkStDefine > -1)
             {
-                printf("%s symbol prop\n", st->symbols[checkStDefine].prop);
                 if (strcmp(st->symbols[checkStDefine].prop, "mdefine") != 0)
                 {
                     printf("Error: %s isn't a .define\n", index);
@@ -440,8 +457,15 @@ int checkAddressType(char *operand, SymbolTable *st)
 int main(void)
 {
     char outputFileName[] = "/Users/razbuxboim/Desktop/University/Open University semesters/2024/2024 a/מעבדה בתכנות מערכות/AsmblerProject/preAsmbler/textFiles/m.am";
-    char newFileWord[] = "/Users/razbuxboim/Desktop/University/Open University semesters/2024/2024 a/מעבדה בתכנות מערכות/AsmblerProject/preAsmbler/textFiles/word.text";
-    startFirstProcess(outputFileName, newFileWord);
+    WordList IC_table = {NULL, 0};
+    WordList DC_table = {NULL, 0};
 
+    startFirstProcess(outputFileName, &DC_table, &IC_table);
+    printf("DC_WordList >> ");
+    printWordList(&DC_table);
+
+    printf("\n");
+    printf("IC_WordList >> ");
+    printWordList(&IC_table);
     return 0;
 }

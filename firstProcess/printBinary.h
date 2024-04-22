@@ -25,7 +25,7 @@ typedef struct Number
 
 char* intToBinaryString(unsigned int num, int bits);
 
-char* printFirstWordBinary(const First_word *word);
+char* getFirstWordBinary(const First_word *word);
 
 char* BinaryString14(int number);
 

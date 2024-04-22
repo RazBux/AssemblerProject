@@ -30,13 +30,14 @@ char *BinaryString14(int number)
  */
 char *intToBinaryString(unsigned int num, int bits)
 {
+    int i;
     char *binaryStr = malloc(bits + 1);
     if (binaryStr == NULL)
     {
         return NULL; /* Memory allocation failed */ 
     }
     binaryStr[bits] = '\0';
-    for (int i = bits - 1; i >= 0; i--)
+    for (i = bits - 1; i >= 0; i--)
     {
         binaryStr[i] = (num & 1) + '0';
         num >>= 1;
@@ -49,9 +50,10 @@ char *intToBinaryString(unsigned int num, int bits)
  * @param word Pointer to the First_word struct.
  * @return A pointer to the dynamically allocated binary string of the number.
  */
-char *printFirstWordBinary(const First_word *word)
+char *getFirstWordBinary(const First_word *word)
 {
     char *binaryStr = malloc(15); /* Allocate for 14 bits plus null terminator */ 
+    char *temp;
     if (binaryStr == NULL)
     {
         printf("Failed to allocate memory for binary string.\n");
@@ -60,7 +62,7 @@ char *printFirstWordBinary(const First_word *word)
     binaryStr[0] = '\0'; /* Start with an empty string */ 
 
     /* Concatenate all bit fields into one binary string in the correct order */ 
-    char *temp;
+    
     temp = intToBinaryString(word->not_in_use, 4);
     strcpy(binaryStr, temp);
     free(temp);
@@ -93,6 +95,7 @@ char *printFirstWordBinary(const First_word *word)
 char *printNumberInBinary(const Number *numStruct)
 {
     char *binaryStr = malloc(15); /* Allocate for 14 bits plus null terminator */ 
+    char *temp;
     if (binaryStr == NULL)
     {
         printf("Failed to allocate memory for binary string.\n");
@@ -101,7 +104,7 @@ char *printNumberInBinary(const Number *numStruct)
     binaryStr[0] = '\0'; /* Start with an empty string */ 
 
     /* Concatenate all bit fields into one binary string in the correct order */ 
-    char *temp;
+    
     if (numStruct->number > 4095) {
         printf("Error: the number %u is too big - cannot fit in 12 bits\n", numStruct->number);
         return NULL;
