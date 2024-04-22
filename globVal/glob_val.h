@@ -18,9 +18,10 @@ typedef struct
 } MacroStorage;
 
 /* Use for managing the state when processing the line from the Asmbly file */
-enum Flag{
-    START, 
-    LABEL, /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
+enum Flag
+{
+    START,
+    LABEL,   /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
     OP_CODE, /* operands name sparating by ',' */
     G1_OPERAND,
     G2_OPERAND,
@@ -50,9 +51,9 @@ typedef enum Op_code
     cmp,
     add,
     sub,
-    lea,
-    clr,
     not,
+    clr,
+    lea,
     inc,
     dec,
     jmp,
@@ -64,23 +65,19 @@ typedef enum Op_code
     hlt
 } op_code;
 
-/* division for bytes for the "First word" in an instruction */
-typedef struct First_word
-{
-    /*14 bytes total*/
-    unsigned int ARE : 2;
-    unsigned int dest_op_addr : 2;
-    unsigned int src_op_addr : 2;
-    unsigned int op_code : 4;
-    unsigned int not_in_use : 4;
-} first_word;
 
-/*format the number divsion in binary*/
-typedef struct Number
-{
-    /* 14 bytes, ARE_bytes are 00 */
-    unsigned int ARE : 2;
-    unsigned int number : 12; /*The number will be display as 12 digint binary*/
-} number;
+typedef struct {
+    const char *name;
+    op_code code;
+} CommandMap;
+
+/*
+CommandMap commands[] = {
+    {"mov", mov}, {"cmp", cmp}, {"add", add}, {"sub", sub},
+    {"not", not}, {"clr", clr}, {"lea", lea}, {"inc", inc},
+    {"dec", dec}, {"jmp", jmp}, {"bne", bne}, {"red", red},
+    {"prn", prn}, {"jsr", jsr}, {"rts", rts}, {"hlt", hlt}
+};
+*/
 
 #endif
