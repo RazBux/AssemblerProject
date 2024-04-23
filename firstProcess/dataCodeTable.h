@@ -21,6 +21,7 @@ typedef struct {
 void addWord(WordList *list, const char *word);
 void changeWord(WordList *list, int position, const char *newWord);
 void printWordList(const WordList *list);
+void printWordListReverse(const WordList *list);
 Node* createNode(const char *word);
 
 

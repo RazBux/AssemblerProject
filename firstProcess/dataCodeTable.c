@@ -7,6 +7,8 @@
 void addWord(WordList *list, const char *word);
 void changeWord(WordList *list, int position, const char *newWord);
 void printWordList(const WordList *list);
+void printWordsReverse(const Node *node);
+void printWordListReverse(const WordList *list);
 Node* createNode(const char *word);
 
 /*
@@ -67,6 +69,21 @@ void printWordList(const WordList *list) {
         printf("%s\n", current->word);
         current = current->next;
     }
+    printf("\n");
+}
+
+/* Recursive helper function to print nodes in reverse */
+void printWordsReverse(const Node *node) {
+    if (node != NULL) {
+        printWordsReverse(node->next);  /*Traverse to the end of the list*/ 
+        printf("%s\n", node->word);     /*Print the word on the way back*/ 
+    }
+}
+
+/* Function to print all words in the linked list from end to start */
+void printWordListReverse(const WordList *list) {
+    printf("Word List (Reversed): \n");
+    printWordsReverse(list->head);
     printf("\n");
 }
 

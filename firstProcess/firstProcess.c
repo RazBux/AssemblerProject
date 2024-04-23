@@ -11,6 +11,7 @@
 int checkAddressType(char *operand, SymbolTable *st);
 int processLine(char *, WordList *, WordList *, SymbolTable *, int *, int *);
 int startFirstProcess(char *, WordList *, WordList *);
+char *extract_brackets(const char *, int);
 
 int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table)
 {
@@ -39,6 +40,9 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
 
     printf("\nprint symbol table:::\n");
     printSymbols(&st);
+
+    printf("IC:: %d\n", IC);
+    printf("DC:: %d\n", DC);
     return 0;
 }
 
@@ -57,7 +61,6 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
 */
 int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable *st, int *DC, int *IC)
 {
-    enum Flag flag = START;
     size_t pLen; /* for checking the if it's a lable */
 
     int firstCharIndex;
@@ -99,7 +102,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
         /* Lable check:
             if there is a lable in the first word,
             by see if the last char is ":" */
-        else if (flag == START && *(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
+        else if (*(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
         {
             char *label;
 
@@ -144,7 +147,6 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 return -1; /* there is an error with the lable name */
             }
             free(label);  /*free the lable memory*/
-            flag = LABEL; /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
         }
 
         /* After checking if there is LABEL and add it to the symbol table
@@ -152,13 +154,6 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
         /* if it's a directive line */
         if (*p == '.')
         {
-            /* do we need falg ???
-            if (flag == LABEL)
-            {
-                printf("data:: ");
-            }*/
-            /* printf("DIR: %s\n", p); */
-
             /* check witch of the cases it is */
             if (strcmp(p, ".data") == 0)
             {
@@ -254,6 +249,11 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 /*there is no word after the operand*/
                 if (p == NULL)
                     return 0;
+                else
+                {
+                    printf("Error: invalid words after operand");
+                    return -1;
+                }
             }
 
             /* G:2 commands - 1 operand */
@@ -266,9 +266,6 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
 
                 p = strtok(NULL, delimiters); /*get the operande*/
 
-                /*check the number of words in it's -> and also see what the method of addressing*/
-                fw.op_code = opC;
-                // fw.dest_op_addr = checkAddressType(p, st); /*get the type of the addressing*/
                 addressType = checkAddressType(p, st);
                 if (addressType == -1)
                 {
@@ -293,24 +290,37 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     return -1;
                 }
 
+                fw.op_code = opC;
+                fw.dest_op_addr = addressType;
                 word = getFirstWordBinary(&fw);
-                addWord(IC_table, word);
+                addWord(IC_table, word); /* dont forget to add the addressing type for those words*/
                 *IC += 1;
                 printf("code counter == %d\n", *IC);
 
-                /* keep printing the words for the operand */
-                addWord(IC_table, p);
-                printf("word::%s, p::%s\n\n", word, p);
+                if (addressType == 2)
+                {
+                    char *first_arg = extract_brackets(p, 1);
+                    char *second_arg = extract_brackets(p, 2);
+                    *IC += 2;
+                    printf("F1:%s, S2:%s\n", first_arg, second_arg);
 
-                /* count the number of code instruction */
-                // CI += ?;
+                    /*add the word to IC_table*/
+                    addWord(IC_table, first_arg);
+                    addWord(IC_table, second_arg);
+                    free(first_arg);
+                    free(second_arg);
+                }
+                else
+                {
+                    addWord(IC_table, p);
+                    /* add here the numbers for #x, r'x' and defines ...*/
+                    *IC += 1;
+                }
 
                 /* check there is nothing after the word */
                 p = strtok(NULL, delimiters);
                 if (p == NULL)
-                {
                     return 0;
-                }
                 else
                 {
                     printf("Error: %s operade allow only 1 after it.", p);
@@ -322,16 +332,113 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
 
             /* G:1 commands - 2 operands */
             // "mov", "cmp", "add", "sub", "lea",
-            else if (strcmp("hlt", p) == 0 || strcmp("rts", p) == 0 || strcmp("hlt", p) == 0 || strcmp("rts", p) == 0)
+            else if (strcmp("mov", p) == 0 || strcmp("cmp", p) == 0 || strcmp("add", p) == 0 || strcmp("sub", p) == 0 || strcmp("lea", p) == 0)
             {
-            }
-            printf("OP_CODE:%s\n", p);
-            while (p != NULL)
-            {
-                p = strtok(NULL, delimiters);
-                if (p != NULL)
+                int destAddressType;
+                int sourceAddressType;
+                char *firstOp;
+                char *secondOp;
+                char *opName = (char *)malloc(strlen(p) + 1);
+                strcpy(opName, p);
+
+                p = strtok(NULL, ", \n"); /*get the first operande*/
+                firstOp = (char *)malloc(strlen(p) + 1);
+                strcpy(firstOp, p);
+
+                p = strtok(NULL, ", \n"); /*get the second operande*/
+                secondOp = (char *)malloc(strlen(p) + 1);
+                strcpy(secondOp, p);
+
+                /* check for address types */
+                sourceAddressType = checkAddressType(firstOp, st);
+                destAddressType = checkAddressType(secondOp, st);
+                if (destAddressType == -1 || sourceAddressType == -1)
                 {
-                    printf("OC: %s\n", p);
+                    printf("Error: exit line because of error in address type\n");
+                    return -1;
+                }
+
+                printf("firstOp %s addressType: %d\n", firstOp, destAddressType);
+                printf("secondOp %s addressType: %d\n", secondOp, sourceAddressType);
+
+                /* check for valid addressing type S == surce, D == dest */
+                /* cmp - S&D: 0,1,2,3 there is no need to check */
+
+                /* add,sub,mov - S: 0,1,2,3 | D: 1,2,3  .check if dest if 0 -> invalid*/
+                if ((strcmp("add", opName) == 0 || strcmp("sub", opName) == 0 || strcmp("mov", opName) == 0) && destAddressType == 0)
+                {
+                    printf("Error: the address type of %d for 'dest' isn't valid for this op code: %s\n", destAddressType, opName);
+                    return -1;
+                }
+                /* lea - S: 1,2 | D: 1,2,3 */
+                else if (strcmp("lea", opName) == 0 && (sourceAddressType == 0 || sourceAddressType == 3 || destAddressType == 0))
+                {
+                    printf("Error: address type of isn't valid for this op code: %s\n", opName);
+                    return -1;
+                }
+
+                /*add the firstWord to IC_table*/
+                fw.op_code = opC;
+                fw.dest_op_addr = destAddressType;
+                fw.src_op_addr = sourceAddressType;
+                word = getFirstWordBinary(&fw);
+                addWord(IC_table, word);
+                *IC += 1;
+                if (destAddressType == 3 && sourceAddressType == 3)
+                {
+                    /*if both registers addressType - it's only 1 world*/
+                    addWord(IC_table, strcat(firstOp,secondOp));
+                    *IC += 1;
+                }
+                else
+                {
+                    if (sourceAddressType == 2)
+                    {
+                        char *first_arg = extract_brackets(firstOp, 1);
+                        char *second_arg = extract_brackets(firstOp, 2);
+                        *IC += 2;
+                        printf("F1:%s, S2:%s\n", first_arg, second_arg);
+
+                        /*add the word to IC_table*/
+                        addWord(IC_table, first_arg);
+                        addWord(IC_table, second_arg);
+                        free(first_arg);
+                        free(second_arg);
+                    }
+                    else
+                    {
+                        addWord(IC_table, firstOp);
+                        *IC += 1;
+                    }
+
+                    if (destAddressType == 2)
+                    {
+                        char *first_arg = extract_brackets(secondOp, 1);
+                        char *second_arg = extract_brackets(secondOp, 2);
+                        *IC += 2;
+                        printf("F1:%s, S2:%s\n", first_arg, second_arg);
+
+                        /*add the word to IC_table*/
+                        addWord(IC_table, first_arg);
+                        addWord(IC_table, second_arg);
+                        free(first_arg);
+                        free(second_arg);
+                    }
+                    else
+                    {
+                        addWord(IC_table, secondOp);
+                        *IC += 1;
+                    }
+                }
+
+                /* check there is nothing after the word */
+                p = strtok(NULL, delimiters);
+                if (p == NULL)
+                    return 0;
+                else
+                {
+                    printf("Error: %s operade allow only 1 after it.", p);
+                    return -1;
                 }
             }
         }
@@ -340,9 +447,6 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             printf("Error: %s isn't a valid word to use\n", p); /* Print each token */
             return -1;
         }
-
-        p = strtok(NULL, delimiters); /* Get the next word-token */
-        flag = NUM_OF_FLAG;
     }
     printf("\n");
 
@@ -376,7 +480,7 @@ int checkAddressType(char *operand, SymbolTable *st)
     /* Addressing no 3: '11' - register addressing */
     else if (*operand == 'r' && isdigit(*(operand + 1)) && *(operand + 2) == '\0')
     {
-        printf("Register operand: %s\n", operand);
+        /*printf("Register operand: %s\n", operand);*/
         return 3;
     }
     /* Addressing no 2: '10' - with lable[int/define]
@@ -454,6 +558,68 @@ int checkAddressType(char *operand, SymbolTable *st)
     return -1; // invalid addressing type
 }
 
+/*
+ * Function to extract contents based on part:
+ * part = 1 for the content inside the first level of brackets.
+ * part = 2 for the content inside the second level of brackets.
+ * Returns a dynamically allocated string that must be freed by the caller.
+ * Need to free after use..
+ */
+char *extract_brackets(const char *input, int part)
+{
+    const char *start, *end;
+    char *output = NULL;
+
+    /* Find the first opening bracket */
+    start = strchr(input, '[');
+    if (start == NULL)
+    {
+        printf("No opening bracket found.\n");
+        return NULL;
+    }
+
+    /* Find the corresponding closing bracket */
+    end = strchr(start, ']');
+    if (end == NULL)
+    {
+        printf("No closing bracket found.\n");
+        return NULL;
+    }
+
+    if (part == 1)
+    {
+        /* Allocate memory to extract everything before the first '[' */
+        output = (char *)malloc(start - input + 1);
+        if (output != NULL)
+        {
+            strncpy(output, input, start - input);
+            output[start - input] = '\0'; /* Null-terminate the result */
+        }
+        else
+        {
+            printf("Failed to allocate memory\n");
+            exit(1);
+        }
+    }
+    else if (part == 2)
+    {
+        /* Allocate memory and extract everything up to the first ']' after the '[' */
+        output = (char *)malloc(end - start);
+        if (output != NULL)
+        {
+            strncpy(output, start + 1, end - start - 1);
+            output[end - start - 1] = '\0'; /* Null-terminate the result */
+        }
+        else
+        {
+            printf("Failed to allocate memory\n");
+            exit(1);
+        }
+    }
+
+    return output; /* Return the dynamically allocated substring */
+}
+
 int main(void)
 {
     char outputFileName[] = "/Users/razbuxboim/Desktop/University/Open University semesters/2024/2024 a/מעבדה בתכנות מערכות/AsmblerProject/preAsmbler/textFiles/m.am";
@@ -462,10 +628,10 @@ int main(void)
 
     startFirstProcess(outputFileName, &DC_table, &IC_table);
     printf("DC_WordList >> ");
-    printWordList(&DC_table);
+    printWordListReverse(&DC_table);
 
     printf("\n");
     printf("IC_WordList >> ");
-    printWordList(&IC_table);
+    printWordListReverse(&IC_table);
     return 0;
 }

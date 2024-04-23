@@ -17,18 +17,6 @@ typedef struct
     int count;
 } MacroStorage;
 
-/* Use for managing the state when processing the line from the Asmbly file */
-enum Flag
-{
-    START,
-    LABEL,   /* the next work should be or 'op_code' or instruction like '.data, .string, .entry, .extern' */
-    OP_CODE, /* operands name sparating by ',' */
-    G1_OPERAND,
-    G2_OPERAND,
-    G3_OPERAND,
-    DEFINE,
-    NUM_OF_FLAG
-};
 
 /* Defines a register type - r0 to r7 & not a register */
 typedef enum Registers
