@@ -12,6 +12,7 @@ int checkAddressType(char *operand, SymbolTable *st);
 int processLine(char *, WordList *, WordList *, SymbolTable *, int *, int *);
 int startFirstProcess(char *, WordList *, WordList *);
 char *extract_brackets(const char *, int);
+char *addressToBinatry(int addressType, char* p, SymbolTable *st, char addressC);
 
 int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table)
 {
@@ -39,8 +40,10 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
     }
 
     printf("\nprint symbol table:::\n");
-    printSymbols(&st);
+    /*go over the SymbolTable and add 100 to each 'code' and IC+100 to 'data'*/
 
+    icdcSymbolTable(&st, IC);
+    printSymbols(&st);
     printf("IC:: %d\n", IC);
     printf("DC:: %d\n", DC);
     return 0;
@@ -146,7 +149,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             {
                 return -1; /* there is an error with the lable name */
             }
-            free(label);  /*free the lable memory*/
+            free(label); /*free the lable memory*/
         }
 
         /* After checking if there is LABEL and add it to the symbol table
@@ -181,6 +184,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     }
 
                     addWord(DC_table, word); /*data table adding words*/
+                    *DC += 1;
 
                     countData++;
                     p = strtok(NULL, ", \n"); /*get the next value*/
@@ -190,8 +194,6 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     printf("ERROR: there is no data after the .data\n");
                     return -1;
                 }
-                *DC += countData;
-                printf("DC %d", *DC);
             }
             else if (strcmp(p, ".string") == 0)
             {
@@ -200,17 +202,26 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 /* after a .string the next word need to be - "somting" */
                 if (*p == '\"' && *(p + strlen(p) - 1) == '\"')
                 {
-                    size_t len = strlen(p);
                     size_t s;
                     /* Iterate from the second character to the second-to-last character */
-                    for (s = 1; s < len - 1; s++)
+                    for (s = 1; s < strlen(p) - 1; s++)
                     {
+                        printf("%c, ", p[s]);
                         addWord(DC_table, BinaryString14(p[s]));
+                        *DC += 1;
                     }
                     addWord(DC_table, BinaryString14('\0'));
                     // fprintf(outputFile, "%s\n", BinaryString14('\0'));
-                    *DC += len - 1; /* add 1 number for each charachter and 1 for the null */
-                    printf("DC %d", *DC);
+                    *DC += 1; /* add 1 number for each charachter and 1 for the null */
+
+                    p = strtok(NULL, delimiters);
+                    if (p == NULL)
+                        return 0;
+                    else
+                    {
+                        printf("Error: no word should be after \"x\" of the string");
+                        return -1;
+                    }
                 }
                 else
                 {
@@ -297,23 +308,32 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 *IC += 1;
                 printf("code counter == %d\n", *IC);
 
-                if (addressType == 2)
+                if (addressType == 2) /*type of y[x]*/
                 {
                     char *first_arg = extract_brackets(p, 1);
                     char *second_arg = extract_brackets(p, 2);
+                    Number sNum = {0}; /*Using this to extract the number of the second arg*/
+                    int sVal;
+
                     *IC += 2;
+
                     printf("F1:%s, S2:%s\n", first_arg, second_arg);
+
+                    /*for the secode arg -> check if it's a number or mdefine and convert to binary*/
+                    sVal = isInteger(second_arg) ? atoi(second_arg) : st->symbols[getSymbolIndex(st, second_arg)].val;
+                    sNum.number = sVal;
 
                     /*add the word to IC_table*/
                     addWord(IC_table, first_arg);
-                    addWord(IC_table, second_arg);
+                    addWord(IC_table, getNumberBinary(&sNum));
+
                     free(first_arg);
                     free(second_arg);
                 }
-                else
-                {
-                    addWord(IC_table, p);
-                    /* add here the numbers for #x, r'x' and defines ...*/
+                else { /*if it 0,1,3 addressType*/
+                    char* word_operand = addressToBinatry(addressType, p, st, 'd');
+                    printf("word_operand:: %s", word_operand);
+                    addWord(IC_table,word_operand);
                     *IC += 1;
                 }
 
@@ -339,6 +359,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 char *firstOp;
                 char *secondOp;
                 char *opName = (char *)malloc(strlen(p) + 1);
+
                 strcpy(opName, p);
 
                 p = strtok(NULL, ", \n"); /*get the first operande*/
@@ -386,8 +407,19 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 *IC += 1;
                 if (destAddressType == 3 && sourceAddressType == 3)
                 {
-                    /*if both registers addressType - it's only 1 world*/
-                    addWord(IC_table, strcat(firstOp,secondOp));
+                    /*if both registers addressType - it's only 1 world
+                    * from 2-4 the surce register and from 5-7 the dest register
+                    */
+                    RegNumber reg_num = {0};
+                    char* regWord; 
+                    /*convert registers to integer*/
+                    int firstReg = atoi(firstOp+1);
+                    int secondReg = atoi(secondOp+1);
+
+                    reg_num.source_reg = firstReg;
+                    reg_num.dest_reg = secondReg;
+
+                    addWord(IC_table, getRegNumberBinary(&reg_num));
                     *IC += 1;
                 }
                 else
@@ -396,18 +428,22 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     {
                         char *first_arg = extract_brackets(firstOp, 1);
                         char *second_arg = extract_brackets(firstOp, 2);
+                        char *bin_second = addressToBinatry(0, second_arg, st, '.');
+
+
                         *IC += 2;
                         printf("F1:%s, S2:%s\n", first_arg, second_arg);
 
                         /*add the word to IC_table*/
                         addWord(IC_table, first_arg);
-                        addWord(IC_table, second_arg);
+                        addWord(IC_table, bin_second);
                         free(first_arg);
                         free(second_arg);
                     }
                     else
                     {
-                        addWord(IC_table, firstOp);
+                        char* fWord_bin = addressToBinatry(sourceAddressType, firstOp, st, 's');
+                        addWord(IC_table, fWord_bin);
                         *IC += 1;
                     }
 
@@ -415,18 +451,21 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     {
                         char *first_arg = extract_brackets(secondOp, 1);
                         char *second_arg = extract_brackets(secondOp, 2);
+                        char *bin_second = addressToBinatry(0, second_arg, st, '.');
+
                         *IC += 2;
                         printf("F1:%s, S2:%s\n", first_arg, second_arg);
 
                         /*add the word to IC_table*/
                         addWord(IC_table, first_arg);
-                        addWord(IC_table, second_arg);
+                        addWord(IC_table, bin_second);
                         free(first_arg);
                         free(second_arg);
                     }
                     else
                     {
-                        addWord(IC_table, secondOp);
+                        char* sWord_bin = addressToBinatry(destAddressType, secondOp, st, 'd');
+                        addWord(IC_table, sWord_bin);
                         *IC += 1;
                     }
                 }
@@ -480,8 +519,15 @@ int checkAddressType(char *operand, SymbolTable *st)
     /* Addressing no 3: '11' - register addressing */
     else if (*operand == 'r' && isdigit(*(operand + 1)) && *(operand + 2) == '\0')
     {
-        /*printf("Register operand: %s\n", operand);*/
-        return 3;
+        operand++;               /*passing the 'r'*/
+        int reg = atoi(operand); /*convert the register number to integer*/
+        if (reg < 8 && reg >= 0) /*check if the register number is valid*/
+            return 3;
+        else
+        {
+            printf("Error registers are allowed only from 0 - 8");
+            return -1;
+        }
     }
     /* Addressing no 2: '10' - with lable[int/define]
         ---> in the seconde run we schold check if the symbol exsist */
@@ -620,6 +666,43 @@ char *extract_brackets(const char *input, int part)
     return output; /* Return the dynamically allocated substring */
 }
 
+/*get the address binary from world with addressType*/
+char* addressToBinatry(int addressType, char* p, SymbolTable *st, char addressC)
+{
+    if (addressType == 0) /* meaning the arg starts with #*/
+    {
+        int sVal;
+        Number sNum = {0};
+        if (*p == '#'){
+            p++; /*passing on #*/
+        }
+
+        sVal = isInteger(p) ? atoi(p) : st->symbols[getSymbolIndex(st, p)].val;
+        sNum.number = sVal;
+        return getNumberBinary(&sNum);
+    }
+    else if (addressType == 3) /*if it's a register*/
+    {
+        RegNumber regNum = {0}; /*using the first word to get the 'dest' holding the register number*/
+        int rVal= atoi(p+1);
+        if (addressC == 'd'){
+            regNum.dest_reg = rVal;
+        }
+        else if (addressC == 's'){
+            regNum.source_reg = rVal;
+        }
+        
+        return getRegNumberBinary(&regNum);
+    }
+    else if(addressType == 1){
+        return p;
+    }
+    else { 
+        printf("!!! Only 0, 1 or 3 address type is valid !!!");
+        return NULL;
+    }
+}
+
 int main(void)
 {
     char outputFileName[] = "/Users/razbuxboim/Desktop/University/Open University semesters/2024/2024 a/מעבדה בתכנות מערכות/AsmblerProject/preAsmbler/textFiles/m.am";
@@ -627,6 +710,7 @@ int main(void)
     WordList DC_table = {NULL, 0};
 
     startFirstProcess(outputFileName, &DC_table, &IC_table);
+
     printf("DC_WordList >> ");
     printWordListReverse(&DC_table);
 

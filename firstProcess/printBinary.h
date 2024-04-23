@@ -23,9 +23,23 @@ typedef struct Number
     unsigned int ARE : 2;
 } Number;
 
+/*format the number divsion in binary*/
+typedef struct regNumber
+{
+    /* 14 bytes, ARE_bytes are 00 */
+    unsigned int not_in_use : 6;
+    unsigned int source_reg : 3;
+    unsigned int dest_reg : 3;
+    unsigned int ARE : 2;
+} RegNumber;
+
 char* intToBinaryString(unsigned int num, int bits);
 
 char* getFirstWordBinary(const First_word *word);
+
+char* getNumberBinary(const Number *number);
+
+char *getRegNumberBinary(const RegNumber *regNumber);
 
 char* BinaryString14(int number);
 

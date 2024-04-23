@@ -40,6 +40,8 @@ int hasSymbol(const SymbolTable *st, const char* name);
 /* Prints all symbols in the symbol table array */
 void printSymbols(const SymbolTable *st);
 
+void icdcSymbolTable(const SymbolTable *st, int IC);
+
 /* Free the memory of the SymbolTable array we allocate during both Process */
 void freeSymbolTable(SymbolTable **st);
 

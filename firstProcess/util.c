@@ -109,17 +109,29 @@ void printSymbols(const SymbolTable *st)
                valueWidth, st->symbols[i].val);
     }
 }
-/*
-void printSymbols(const SymbolTable *st)
+
+
+/**
+ * Add proper value for 'code' or 'data'.
+ * for data - add the IC (counter for instruction code) + 100 (starting place of the program)
+ * for code - add 100 for starting place of the program.
+ * @param st A pointer to the SymbolTable to print.
+ * @param IC The counter of the instruction code.
+ */
+void icdcSymbolTable(const SymbolTable *st, int IC)
 {
     size_t i;
     for (i = 0; i < st->symbolCount; i++)
     {
-        printf("Symbol: %s, Property: %s, Value: %d\n",
-               st->symbols[i].symbol, st->symbols[i].prop, st->symbols[i].val);
+        if (strcmp(st->symbols[i].prop,"code") == 0){
+            st->symbols[i].val += 100;
+        }
+        else if (strcmp(st->symbols[i].prop,"data") == 0){
+            st->symbols[i].val += 100 + IC;
+        }
     }
 }
-*/
+
 
 /**
  * Checks if a symbol exists in the SymbolTable.

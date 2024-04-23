@@ -88,6 +88,76 @@ char *getFirstWordBinary(const First_word *word)
 }
 
 /**
+ * Creates a binary string representation of a Number struct.
+ * @param Number Pointer to the Number struct.
+ * @return A pointer to the dynamically allocated binary string of the number.
+ */
+char *getNumberBinary(const Number *number)
+{
+    char *binaryStr = malloc(15); /* Allocate for 14 bits plus null terminator */ 
+    char *temp;
+    if (binaryStr == NULL)
+    {
+        printf("Failed to allocate memory for binary string.\n");
+        return NULL;
+    }
+    binaryStr[0] = '\0'; /* Start with an empty string */ 
+
+    /* Concatenate all bit fields into one binary string in the correct order */ 
+    
+    temp = intToBinaryString(number->number, 12);
+    strcpy(binaryStr, temp);
+    free(temp);
+
+    temp = intToBinaryString(number->ARE, 2);
+    strcat(binaryStr, temp);
+    free(temp);
+
+    /*printf("Complete First Word (Binary): %s\n", binaryStr);*/
+    return binaryStr;
+}
+
+
+/**
+ * Creates a binary string representation of a Number struct.
+ * @param NumberReg Pointer to the NumberReg struct.
+ * @return A pointer to the dynamically allocated binary string of the number.
+ */
+char *getRegNumberBinary(const RegNumber *regNumber)
+{
+    char *binaryStr = malloc(15); /* Allocate for 14 bits plus null terminator */ 
+    char *temp;
+    if (binaryStr == NULL)
+    {
+        printf("Failed to allocate memory for binary string.\n");
+        return NULL;
+    }
+    binaryStr[0] = '\0'; /* Start with an empty string */ 
+
+    /* Concatenate all bit fields into one binary string in the correct order */ 
+
+    temp = intToBinaryString(regNumber->not_in_use, 6);
+    strcpy(binaryStr, temp);
+    free(temp);
+
+    temp = intToBinaryString(regNumber->source_reg, 3);
+    strcat(binaryStr, temp);
+    free(temp);
+
+    temp = intToBinaryString(regNumber->dest_reg, 3);
+    strcat(binaryStr, temp);
+    free(temp);
+
+    temp = intToBinaryString(regNumber->ARE, 2);
+    strcat(binaryStr, temp);
+    free(temp);
+
+    /*printf("Complete First Word (Binary): %s\n", binaryStr);*/
+    return binaryStr;
+}
+
+
+/**
  * Creates a binary string representation of a number struct.
  * @param numStruct Pointer to the Number struct.
  * @return A pointer to the dynamically allocated binary string of the number.
