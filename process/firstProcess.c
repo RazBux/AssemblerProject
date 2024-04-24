@@ -4,9 +4,9 @@
 #include <ctype.h>
 #include <limits.h>
 
-#include "util.h"
 #include "printBinary.h"
 #include "dataCodeTable.h"
+#include "../util/util.h"
 
 /*
 #include "secondProcess.h"
@@ -45,8 +45,10 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
     printSymbols(st);
     
     /* status of IC and DC */
-    printf("IC:: %d\n", IC);
-    printf("DC:: %d\n", DC);
+    /*
+    printf("\nIC:: %d\n", IC);
+    printf("DC:: %d\n\n", DC);
+    */
 
     fclose(file);
 
@@ -84,13 +86,13 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
     firstCharIndex = strspn(line, " \t\n");
     if (line[firstCharIndex] == ';')
     {
-        printf("Comment line: %s\n", line);
+        printf("Comment line: %s", line);
         return 0; /* Return immediately if the line is a comment */
     }
 
     /* connect ',' to be w.o spaces between them, before:"6 , -9 , len" after:"6,-9,len" */
     normalizeString(line);
-    printf("line >>> %s", line);
+    printf("\nline >>> %s", line);
     /* get the fisrt word from line */
     p = strtok(line, delimiters);
 
@@ -304,7 +306,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     printf("Error: exit line because of error in address type\n");
                     return -1;
                 }
-                printf("operand %s addressType: %d\n\n", p, addressType);
+                printf("operand %s addressType: %d\n", p, addressType);
 
                 /* check the addressing type and if it's valied */
                 /* "prn" --> 0,1,2,3 : need no check because it's can be any thing */
@@ -327,7 +329,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 word = getFirstWordBinary(&fw);
                 addWord(IC_table, word); /* dont forget to add the addressing type for those words*/
                 *IC += 1;
-                printf("code counter == %d\n", *IC);
+                /* printf("code counter == %d\n", *IC); */
 
                 if (addressType == 2) /*type of y[x]*/
                 {
@@ -337,8 +339,8 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     int sVal;
 
                     *IC += 2;
-
-                    printf("F1:%s, S2:%s\n", first_arg, second_arg);
+                    
+                    /* printf("F1:%s, S2:%s\n", first_arg, second_arg); */
 
                     /*for the secode arg -> check if it's a number or mdefine and convert to binary*/
                     sVal = isInteger(second_arg) ? atoi(second_arg) : st->symbols[getSymbolIndex(st, second_arg)].val;
@@ -451,7 +453,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                         char *bin_second = addressToBinatry(0, second_arg, st, '.');
 
                         *IC += 2;
-                        printf("F1:%s, S2:%s\n", first_arg, second_arg);
+                        /* printf("F1:%s, S2:%s\n", first_arg, second_arg); */
 
                         /*add the word to IC_table*/
                         addWord(IC_table, first_arg);
@@ -473,7 +475,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                         char *bin_second = addressToBinatry(0, second_arg, st, '.');
 
                         *IC += 2;
-                        printf("F1:%s, S2:%s\n", first_arg, second_arg);
+                        /* printf("F1:%s, S2:%s\n", first_arg, second_arg); */
 
                         /*add the word to IC_table*/
                         addWord(IC_table, first_arg);
@@ -614,7 +616,7 @@ int checkAddressType(char *operand, SymbolTable *st)
     /* soft check if it's can be a valid lable */
     else if (isValidLable(operand))
     {
-        printf("%s can be a valid lable\n", operand);
+        /* printf("%s can be a valid lable\n", operand); */
         return 1;
     }
 

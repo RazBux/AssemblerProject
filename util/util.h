@@ -7,8 +7,6 @@
 #include <string.h>
 
 /* Include global values if needed */
-#include "../globVal/glob_val.h"
-
 #define MAX_LINE_LENGTH 80
 #define MAX_MACRO_NAME 30
 #define MAX_LABLE_NAME 31

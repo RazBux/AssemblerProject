@@ -2,7 +2,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "../globVal/glob_val.h"
 #include "util.h"
 
 /* Define a constant array of saved words */
@@ -108,6 +107,8 @@ void printSymbols(const SymbolTable *st)
                propWidth, st->symbols[i].prop,
                valueWidth, st->symbols[i].val);
     }
+    
+    printf("\n");
 }
 
 

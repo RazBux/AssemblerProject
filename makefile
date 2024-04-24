@@ -6,9 +6,10 @@ CFLAGS=-ansi -Wall -pedantic -g
 PROCESS_PATH=./process
 ENCRYPTION_PATH=./encryption
 PRE_ASMB_PATH=./preAsmbler
+UTIL_PATH=./util
 
 # Define source files
-SOURCES=main.c $(PROCESS_PATH)/util.c $(PROCESS_PATH)/dataCodeTable.c $(PROCESS_PATH)/firstProcess.c $(PROCESS_PATH)/secondProcess.c $(PROCESS_PATH)/printBinary.c $(ENCRYPTION_PATH)/encryption.c $(PRE_ASMB_PATH)/preAsmbler.c 
+SOURCES=main.c $(UTIL_PATH)/util.c $(PROCESS_PATH)/dataCodeTable.c $(PROCESS_PATH)/firstProcess.c $(PROCESS_PATH)/secondProcess.c $(PROCESS_PATH)/printBinary.c $(ENCRYPTION_PATH)/encryption.c $(PRE_ASMB_PATH)/preAsmbler.c 
 
 # Define the output executable name
 EXECUTABLE=main
@@ -24,5 +25,6 @@ run: $(EXECUTABLE)
 # Target to clean the project
 clean:
 	rm -f $(EXECUTABLE)
+	rm -f *.ob *.ext *.ent *.am
 
 .PHONY: run clean

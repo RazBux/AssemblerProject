@@ -18,7 +18,7 @@ char *BinaryString14(int number)
         binaryStr[i] = (number & mask) ? '1' : '0';
         mask >>= 1; /* Move the mask to the next bit */
     }
-    printf("No.%d ,Binary == %s\n", number, binaryStr);
+    /* printf("No.%d ,Binary == %s\n", number, binaryStr); */
     return binaryStr;
 }
 

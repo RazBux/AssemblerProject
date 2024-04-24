@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../process/dataCodeTable.h"
-#include "../process/util.h"
+#include "../util/util.h"
 
 char* encryptBinary(const char *binary);
 void encryptionReverse(const Node *node, int *E);

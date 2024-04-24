@@ -6,7 +6,6 @@
 #include <limits.h>
 #include "util.h"
 #include "printBinary.h"
-#include "../globVal/glob_val.h"
 #include "dataCodeTable.h"
 
 

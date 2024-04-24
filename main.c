@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "process/util.h"
+#include "util/util.h"
 #include "preAsmbler/preAsmbler.h"
 #include "process/dataCodeTable.h"
 #include "process/firstProcess.h"
@@ -87,6 +87,6 @@ int main(int argc, char *argv[])
             }
         }
     }
-    
+
     return 0;
 }

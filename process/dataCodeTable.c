@@ -16,7 +16,7 @@ void addWord(WordList *list, const char *word) {
     Node *newNode = createNode(word); /* Create a new node with the given word */
     if (newNode == NULL) return; /* Memory allocation failed */
 
-    printf("AddToList - %s\n", word);
+    /* printf("AddToList - %s\n", word); */
 
     newNode->next = list->head; /* Insert at the beginning */
     list->head = newNode;

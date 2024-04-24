@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "preAsmbler.h"
-#include "../process/util.h"
+#include "../util/util.h"
 
 /* Initialize macro storage */
 void init_macro_storage(MacroStorage *storage)
@@ -40,13 +40,13 @@ char *clean_text(const char *src)
         if (*src == '\n')
         {
             /* Directly copy newline character */
-            *dst++ = *src;    
+            *dst++ = *src;
 
             /* Reset whitespace sequence tracking */
-            inWhitespace = 1; 
+            inWhitespace = 1;
 
             /* Mark as started copying to allow spaces after this point */
-            started = 1;      
+            started = 1;
         }
         else if (isspace((unsigned char)*src))
         {
@@ -73,10 +73,16 @@ char *clean_text(const char *src)
 void print_stored_macros(const MacroStorage *storage)
 {
     int i;
-    printf("Stored Macros:\n");
-    for (i = 0; i < storage->count; i++)
+    if (storage->count > 0)
     {
-        printf("%d:\nMacro Name: \n%s\nMacro Text:\n%s\n", i, storage->names[i], storage->texts[i]);
+        printf("Stored Macros:\n");
+        for (i = 0; i < storage->count; i++)
+        {
+            printf("%d:\nMacro Name: \n%s\nMacro Text:\n%s\n", i, storage->names[i], storage->texts[i]);
+        }
+    }
+    else {
+        printf("There is no macro in this file\n");
     }
 }
 
@@ -177,7 +183,7 @@ void read_macros_from_file(FILE *file, MacroStorage *storage, const char *output
         return;
     }
 
-     /*maybe need to change to MAX_LINE_LENGTH the sizeof(line)*/
+    /*maybe need to change to MAX_LINE_LENGTH the sizeof(line)*/
     while (fgets(line, sizeof(line), file) != NULL)
     {
         if (strstr(line, " mcr ") != NULL)
@@ -217,10 +223,10 @@ void read_macros_from_file(FILE *file, MacroStorage *storage, const char *output
     fclose(outputFile);
 }
 
-/* 
+/*
     This function add all the MacroText where it's find their coresponding MacroName
-    for exsample: if there is a macroName: "mm", so in all the palces there is "mm" 
-    the name will be removed and the macroText of "mm" will be displayed 
+    for exsample: if there is a macroName: "mm", so in all the palces there is "mm"
+    the name will be removed and the macroText of "mm" will be displayed
 */
 void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
 {
@@ -280,7 +286,7 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
             }
         }
         if (!lineModified && strlen(line) > 1) /* To avoid writing empty lines */
-        {                         
+        {
             fputs(line, tempFile); /* Write the line as it is if not modified */
         }
     }
@@ -291,14 +297,13 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
     /* Replace the original file with the updated one */
     remove(outputFileName);
     rename("tempfile.txt", outputFileName);
-
 }
 
 int startPreAsmbler(char *inputFileName, char *outputFileName)
 {
-    /* change this to recives the files name. and them chagne the name to 
+    /* change this to recives the files name. and them chagne the name to
         ".am" at the end and return the file path for the firstProcess */
-    /* 
+    /*
     char inputFileName[] = "./textFiles/m.txt";
     char outputFileName[] = "./textFiles/m.am";
     */
@@ -327,8 +332,7 @@ int startPreAsmbler(char *inputFileName, char *outputFileName)
 
     free_macro_storage(&storage);
 
-    printf("Processing complete!\nOutput written to: %s\n", outputFileName);
+    printf("PreAssmbler complete!\nOutput written to: %s\n\n", outputFileName); 
 
     return 0;
 }
-

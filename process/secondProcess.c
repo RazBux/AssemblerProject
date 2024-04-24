@@ -1,6 +1,6 @@
-#include "util.h"
 #include "printBinary.h"
 #include "dataCodeTable.h"
+#include "../util/util.h"
 
 int searchWordLL(char *LABLE, WordList *wl);
 char* combineIntStr(const char *str, int num);
@@ -30,8 +30,10 @@ int startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, W
         
     }
 
+    /*
     printf("\nExterns_WordList >> ");
     printWordListReverse(&externes);
+    */
 
     /*for each symbol in the IC_Code -> change the word to bin*/
     current = IC_table->head;
@@ -49,7 +51,7 @@ int startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, W
                 free(combinW);
 
                 labNum.ARE = 1;
-                printf("change the number from:: %s => %s\n", current->word, getNumberBinary(&labNum));
+                /*printf("change the number from:: %s => %s\n", current->word, getNumberBinary(&labNum));*/
                 current->word = getNumberBinary(&labNum); /*change the lable to bin*/
             }
             else if (getSymbolIndex_dc(st, current->word) != -1) {
@@ -65,8 +67,8 @@ int startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, W
                 /* change the LABLE to bin numbers */
                 labNum.ARE = 2;
                 labNum.number = st->symbols[index].val;
-                printf("LabNum.number = %d\n",labNum.number);
-                printf("change the number from:: %s => %s\n", current->word, getNumberBinary(&labNum));
+                
+                /* printf("change the number from:: %s => %s\n", current->word, getNumberBinary(&labNum)); */
                 current->word = getNumberBinary(&labNum);
             }
             else {
