@@ -3,12 +3,16 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+
 #include "util.h"
 #include "printBinary.h"
-#include "../globVal/glob_val.h"
 #include "dataCodeTable.h"
-#include "secondProcess.h"
 
+/*
+#include "secondProcess.h"
+#include "../encryption/encryption.h"
+#include "../preAsmbler/preAsmbler.h"
+*/
 
 int checkAddressType(char *operand, SymbolTable *st);
 int processLine(char *, WordList *, WordList *, SymbolTable *, int *, int *);
@@ -43,6 +47,9 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
     /* status of IC and DC */
     printf("IC:: %d\n", IC);
     printf("DC:: %d\n", DC);
+
+    fclose(file);
+
     return 0;
 }
 
@@ -208,7 +215,6 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                         *DC += 1;
                     }
                     addWord(DC_table, BinaryString14('\0'));
-                    // fprintf(outputFile, "%s\n", BinaryString14('\0'));
                     *DC += 1; /* add 1 number for each charachter and 1 for the null */
 
                     p = strtok(NULL, delimiters);
@@ -241,8 +247,8 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 {
                     if (!hasSymbol_exen(st, p, e))
                     {
+                        printf("New %s => %s. ",e ,p);
                         addSymbol(st, p, e, 0);
-                        printf("New %s => %s\n",e ,p);
                     }
                     else return -1;
                     p = strtok(NULL, ", \n");
@@ -283,7 +289,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             }
 
             /* G:2 commands - 1 operand */
-            // "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr",
+            /* "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr", */ 
             else if (strcmp("clr", p) == 0 || strcmp("not", p) == 0 || strcmp("inc", p) == 0 || strcmp("jmp", p) == 0 || strcmp("bne", p) == 0 || strcmp("jsr", p) == 0 || strcmp("prn", p) == 0 || strcmp("red", p) == 0 || strcmp("dec", p) == 0)
             {
                 int addressType;
@@ -366,7 +372,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             }
 
             /* G:1 commands - 2 operands */
-            // "mov", "cmp", "add", "sub", "lea",
+            /* "mov", "cmp", "add", "sub", "lea" */
             else if (strcmp("mov", p) == 0 || strcmp("cmp", p) == 0 || strcmp("add", p) == 0 || strcmp("sub", p) == 0 || strcmp("lea", p) == 0)
             {
                 int destAddressType;
@@ -426,7 +432,6 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                      * from 2-4 the surce register and from 5-7 the dest register
                      */
                     RegNumber reg_num = {0};
-                    char *regWord;
                     /*convert registers to integer*/
                     int firstReg = atoi(firstOp + 1);
                     int secondReg = atoi(secondOp + 1);
@@ -512,7 +517,7 @@ int checkAddressType(char *operand, SymbolTable *st)
     /* Addressing no 0: '00' - with # . it's can be number after of define value*/
     if (*operand == '#')
     {
-        char *numberPart = operand + 1; // Skip the '#' to point to the next part
+        char *numberPart = operand + 1; /* Skip the '#' to point to the next part */ 
         /*printf("number = %s\n", numberPart);*/
         if (isInteger(numberPart))
         {
@@ -558,7 +563,7 @@ int checkAddressType(char *operand, SymbolTable *st)
             int checkStDefine;
 
             strncpy(label, operand, lableLen);
-            // label[lableLen] = '\0';
+            /* label[lableLen] = '\0'; */ 
 
             if (label == NULL)
             {
@@ -615,7 +620,7 @@ int checkAddressType(char *operand, SymbolTable *st)
 
     /* if it not one of the addressing type - return -1 = invalid type*/
     printf("Error: invalid type of addressing\n");
-    return -1; // invalid addressing type
+    return -1; /* invalid addressing type */ 
 }
 
 /*
@@ -720,27 +725,30 @@ char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC)
         printf("!!! Only 0, 1 or 3 address type is valid !!!");
         return NULL;
     }
+
 }
 
-int main(void)
+/*
+int checkInHouse_main(void)
 {
     char outputFileName[] = "/Users/razbuxboim/Desktop/University/Open University semesters/2024/2024 a/מעבדה בתכנות מערכות/AsmblerProject/preAsmbler/textFiles/m.am";
     
-    /* create Tables for storing the code image */
+
     WordList IC_table = {NULL, 0};
     WordList DC_table = {NULL, 0};
     
-    
-    
-    /* counters for tracking the code and instruction */
-    int DC = 0; /* Data counter */
-    int IC = 0; /* Instruction counter */
-    int Flag = 0; /* Flag for errors */
-    /* create and initialize the symbol table */
+
+    WordList extF = {NULL, 0};
+    WordList entF = {NULL, 0};
+
+    int DC = 0; 
+    int IC = 0; 
+    int Flag = 0; 
+    int E = 100; 
+
     SymbolTable st;
     initSymbolTable(&st);
 
-    /* first process fill the symbol-table & create code image in the IC_DC tables */
     startFirstProcess(outputFileName, &DC_table, &IC_table, &st, DC, IC, &Flag);
 
     printf("DC_WordList >> ");
@@ -749,18 +757,33 @@ int main(void)
     printf("\nIC_WordList >> ");
     printWordListReverse(&IC_table);
 
-    /* second process change the lables in IC_table to binary code */
-    startSecondProcess(&DC_table, &IC_table, &st, &Flag);
+    startSecondProcess(&DC_table, &IC_table, &entF, &extF, &st, &Flag);
+    
+    printf("DC >> ");
+    printWordListReverse(&DC_table);
 
-    /* if there were no errors create the files and encrypt the machine code */
+    printf("\nIC >> ");
+    printWordListReverse(&IC_table);
+
+    printf("\nExtern >> ");
+    printWordList(&extF);
+
+    printf("\nEntry >> ");
+    printWordList(&entF);
+    
     if (Flag != 0){
         printf("There were %d number of error >> the program won't create the files", Flag);
     }
     else {
-        /* encrypt and create the code files */
-        printf("Complete processing >> creating files now.");
+        printf("Complete processing >> creating files now.\n");
+
+        printf("  %d  %d\n", IC_table.count, DC_table.count);
+        printEncryptionReverse(&IC_table, &E);
+        printEncryptionReverse(&DC_table, &E);
+        
     }
 
 
     return 0;
 }
+*/

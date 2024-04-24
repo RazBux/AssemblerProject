@@ -9,6 +9,36 @@
 /* Include global values if needed */
 #include "../globVal/glob_val.h"
 
+#define MAX_LINE_LENGTH 80
+#define MAX_MACRO_NAME 30
+#define MAX_LABLE_NAME 31
+#define MEMORY_SIZE 4096
+#define INITIAL_MACRO_COUNT 10
+#define WORD_LEN 14
+
+
+
+/* Defines the codes for the supported operations */
+typedef enum Op_code
+{
+    mov,
+    cmp,
+    add,
+    sub,
+    not,
+    clr,
+    lea,
+    inc,
+    dec,
+    jmp,
+    bne,
+    red,
+    prn,
+    jsr,
+    rts,
+    hlt
+} op_code;
+
 /* struct for holding symbols */
 typedef struct {
     char *symbol;
@@ -20,6 +50,11 @@ typedef struct {
     Symbol *symbols;  /* Dynamic array of symbols */
     size_t symbolCount;  /* Number of symbols */ 
 } SymbolTable;
+
+typedef struct {
+    const char *name;
+    op_code code;
+} CommandMap;
 
 /* Functions prototypes */
 
@@ -68,5 +103,9 @@ void normalizeString(char *input);
 op_code getOpCode(const char *command);
 
 int isValidLable(char* lable);
+
+char* combineIntStr(const char *str, int num);
+
+char* createExtendedFileName(const char* fileName, const char* extension);
 
 #endif /* INSTRUCTION_UTILS_H */

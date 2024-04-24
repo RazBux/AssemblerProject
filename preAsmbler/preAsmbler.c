@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-# include "../globVal/glob_val.h"
+#include "preAsmbler.h"
+#include "../process/util.h"
 
 /* Initialize macro storage */
 void init_macro_storage(MacroStorage *storage)
@@ -230,14 +231,14 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
     if (!outputFile)
     {
         perror("File opening failed");
-        return;
+        exit(1);
     }
 
     if (!tempFile)
     {
         perror("Temporary file opening failed");
         fclose(outputFile);
-        return;
+        exit(1);
     }
 
     while (fgets(line, sizeof(line), outputFile) != NULL)
@@ -290,14 +291,17 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
     /* Replace the original file with the updated one */
     remove(outputFileName);
     rename("tempfile.txt", outputFileName);
+
 }
 
-int main(void)
+int startPreAsmbler(char *inputFileName, char *outputFileName)
 {
     /* change this to recives the files name. and them chagne the name to 
         ".am" at the end and return the file path for the firstProcess */
+    /* 
     char inputFileName[] = "./textFiles/m.txt";
     char outputFileName[] = "./textFiles/m.am";
+    */
     FILE *file = fopen(inputFileName, "r");
 
     /* Create the MacroStorage in memory*/
@@ -312,7 +316,7 @@ int main(void)
     else
     {
         perror("Failed to open input file for reading macros");
-        return 1;
+        exit(1);
     }
 
     /* Print all stored macros - Optional */

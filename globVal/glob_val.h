@@ -1,3 +1,4 @@
+/*
 #ifndef _GLOB_VAL_H
 #define _GLOB_VAL_H
 
@@ -8,17 +9,6 @@
 #define INITIAL_MACRO_COUNT 10
 #define WORD_LEN 14
 
-/* Dynamic structure to hold macro names and texts */
-typedef struct
-{
-    char **names;
-    char **texts;
-    int size;
-    int count;
-} MacroStorage;
-
-
-/* Defines a register type - r0 to r7 & not a register */
 typedef enum Registers
 {
     r0,
@@ -29,10 +19,9 @@ typedef enum Registers
     r5,
     r6,
     r7,
-    NOT_REG = -1 /*there is use for this one ?*/
+    NOT_REG = -1
 } reg;
 
-/* Defines the codes for the supported operations */
 typedef enum Op_code
 {
     mov,
@@ -59,13 +48,14 @@ typedef struct {
     op_code code;
 } CommandMap;
 
-/*
 CommandMap commands[] = {
     {"mov", mov}, {"cmp", cmp}, {"add", add}, {"sub", sub},
     {"not", not}, {"clr", clr}, {"lea", lea}, {"inc", inc},
     {"dec", dec}, {"jmp", jmp}, {"bne", bne}, {"red", red},
     {"prn", prn}, {"jsr", jsr}, {"rts", rts}, {"hlt", hlt}
 };
-*/
+
 
 #endif
+*/
+

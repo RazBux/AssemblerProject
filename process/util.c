@@ -475,4 +475,54 @@ int isValidLable(char* lable){
     return 1;
 }
 
+/**
+ * Combines an integer and a string into a formatted string.
+ * The integer is formatted to four digits with leading zeros and combined with the string with three spaces in between.
+ *
+ * @param str The string part of the input.
+ * @param num The integer to format and combine with the string.
+ * @return A dynamically allocated string containing the formatted output. 
+ *         The caller is responsible for freeing this memory.
+ */
+char* combineIntStr(const char *str, int num) {
+    /* Allocate memory for the resulting string */ 
+    /* Integer (4 digits + '\0') + 2 spaces + original string + '\0' */ 
+    char *result = malloc(5 + 2 + strlen(str) + 1);
+    if (result == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+
+    /* Use sprintf to format and concatenate the string directly into the allocated buffer */ 
+    sprintf(result, "%s \t %04d", str, num);
+
+    return result;
+}
+
+
+/**
+ * Concatenates a given filename with a specified extension and returns the new string.
+ * The caller is responsible for freeing the returned string.
+ *
+ * @param fileName The base name of the file.
+ * @param extension The extension to append to the filename, including the dot (e.g., ".txt").
+ * @return A new dynamically allocated string containing the original filename with the specified extension appended.
+ */
+char* createExtendedFileName(const char* fileName, const char* extension) { 
+    /* Calculate needed length for the new string */ 
+    int length = strlen(fileName) + strlen(extension) + 1; /* +1 for the null terminator */ 
+    char* outputFileName = (char*)malloc(length);
+    if (outputFileName == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(1);
+    }
+
+    /* Copy the original filename and concatenate the extension */ 
+    strcpy(outputFileName, fileName);
+    strcat(outputFileName, extension);
+
+    return outputFileName;
+}
+
+
 

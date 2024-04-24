@@ -2,9 +2,12 @@
 CC=gcc
 CFLAGS=-ansi -Wall -pedantic -g
 
+# Define paths to additional source files
+ENCRYPTION_PATH=../encryption
+
 # Target to build the executable directly from source files
-firstProcess: firstProcess.c util.c printBinary.c dataCodeTable.c secondProcess.c
-	$(CC) $(CFLAGS) firstProcess.c util.c printBinary.c dataCodeTable.c secondProcess.c -o firstProcess
+firstProcess: firstProcess.c util.c printBinary.c dataCodeTable.c secondProcess.c $(ENCRYPTION_PATH)/encryption.c
+	$(CC) $(CFLAGS) firstProcess.c util.c printBinary.c dataCodeTable.c secondProcess.c $(ENCRYPTION_PATH)/encryption.c -o firstProcess
 
 # Target to run the program
 run: firstProcess
