@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 typedef struct First_word {
     unsigned int not_in_use : 4;
     unsigned int op_code : 4;

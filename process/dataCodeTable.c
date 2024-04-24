@@ -11,24 +11,21 @@ void printWordsReverse(const Node *node);
 void printWordListReverse(const WordList *list);
 Node* createNode(const char *word);
 
-/*
-int main() {
-    WordList list = {NULL, 0};
+// int main() {
+//     WordList list = {NULL, 0};
 
-    addWord(&list, "Hello");
-    addWord(&list, "World");
-    addWord(&list, "ANSI");
-    addWord(&list, "C");
+//     addWord(&list, "Hello");
+//     addWord(&list, "World");
+//     addWord(&list, "ANSI");
+//     addWord(&list, "C");
 
-    printWordList(&list);
+//     printWordList(&list);
 
-    changeWord(&list, 2, "Standard");
-    printWordList(&list);
+//     changeWord(&list, 2, "Standard");
+//     printWordList(&list);
 
-    return 0;
-}
-*/
-
+//     return 0;
+// }
 
 /* Function to add a word to the linked list */
 void addWord(WordList *list, const char *word) {

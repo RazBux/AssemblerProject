@@ -37,6 +37,8 @@ void addSymbol(SymbolTable *st, char *symbol, char *prop, int val);
     */
 int hasSymbol(const SymbolTable *st, const char* name);
 
+int hasSymbol_exen(const SymbolTable *st, const char *name, char* ex_prop);
+
 /* Prints all symbols in the symbol table array */
 void printSymbols(const SymbolTable *st);
 
@@ -57,6 +59,7 @@ int checkWord(const char *word);
 int isInteger(const char *str);
 
 int getSymbolIndex(const SymbolTable *st, const char *name);
+int getSymbolIndex_dc(const SymbolTable *st, const char *name);
 
 int isOpCode(char *word);
 

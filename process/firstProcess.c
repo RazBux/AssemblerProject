@@ -7,24 +7,19 @@
 #include "printBinary.h"
 #include "../globVal/glob_val.h"
 #include "dataCodeTable.h"
+#include "secondProcess.h"
+
 
 int checkAddressType(char *operand, SymbolTable *st);
 int processLine(char *, WordList *, WordList *, SymbolTable *, int *, int *);
-int startFirstProcess(char *, WordList *, WordList *);
+int startFirstProcess(char *, WordList *, WordList *, SymbolTable *, int , int, int *);
 char *extract_brackets(const char *, int);
-char *addressToBinatry(int addressType, char* p, SymbolTable *st, char addressC);
+char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC);
 
-int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table)
+int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table, SymbolTable *st, int DC, int IC, int *Flag)
 {
     FILE *file = fopen(asmblerOpenFile, "r");
     char line[MAX_LINE_LENGTH];
-
-    /* creaet counters for tracking the code and instruction */
-    int DC = 0; /* Data counter */
-    int IC = 0; /* Instruction counter */
-    /* create symbol table */
-    SymbolTable st;
-    initSymbolTable(&st); /* Initialize the symbol table */
 
     /*check if the file is opened*/
     if (!file)
@@ -36,14 +31,16 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
     /*start processing line by line*/
     while (fgets(line, MAX_LINE_LENGTH, file) != NULL)
     {
-        processLine(line, DC_table, IC_table, &st, &DC, &IC);
+        *Flag += processLine(line, DC_table, IC_table, st, &DC, &IC);
     }
 
-    printf("\nprint symbol table:::\n");
-    /*go over the SymbolTable and add 100 to each 'code' and IC+100 to 'data'*/
+    /* go over the SymbolTable and add 100 to each 'code' and IC+100 to 'data' */
+    icdcSymbolTable(st, IC);
 
-    icdcSymbolTable(&st, IC);
-    printSymbols(&st);
+    printf("\nprint symbol table:::\n");
+    printSymbols(st);
+    
+    /* status of IC and DC */
     printf("IC:: %d\n", IC);
     printf("DC:: %d\n", DC);
     return 0;
@@ -133,11 +130,11 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 {
                     addSymbol(st, label, "code", *IC);
                 }
+                /* the entry and extern can come after lable ?? */
                 else if (*p == '.' && (strcmp(p, ".entry") == 0 || strcmp(p, ".extern") == 0))
                 {
-                    printf("New E => %s\n", p);
-                    /*add it's to the table*/
-                    return 1; /*use this to add it to the symbol table and the TableData*/
+                    printf("Error: it's cannot be...");
+                    return -1;
                 }
                 else
                 {
@@ -230,10 +227,28 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 }
             }
             /* the asmbler need to ignore this line and will print worning massage */
-            else if (strcmp(p, ".entry") == 0 || strcmp(p, ".extern") == 0)
+            else if (strcmp(p, ".extern") == 0 || strcmp(p, ".entry") == 0)
             {
-                printf("Worning: %s ", p);
-                return 0;
+                char* e = strcmp(p, ".extern") == 0 ? "external" : "entry";
+                p = strtok(NULL, ", \n");
+                if (p == NULL)
+                {
+                    printf("Error: no argument after .entry");
+                    return -1;
+                }
+
+                while (p != NULL)
+                {
+                    if (!hasSymbol_exen(st, p, e))
+                    {
+                        addSymbol(st, p, e, 0);
+                        printf("New %s => %s\n",e ,p);
+                    }
+                    else return -1;
+                    p = strtok(NULL, ", \n");
+                }
+
+                return 0; /*use this to add it to the symbol table and the TableData*/
             }
             /* if it is not a valid directive name -> error */
             else
@@ -330,10 +345,10 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     free(first_arg);
                     free(second_arg);
                 }
-                else { /*if it 0,1,3 addressType*/
-                    char* word_operand = addressToBinatry(addressType, p, st, 'd');
-                    printf("word_operand:: %s", word_operand);
-                    addWord(IC_table,word_operand);
+                else
+                { /*if it 0,1,3 addressType*/
+                    char *word_operand = addressToBinatry(addressType, p, st, 'd');
+                    addWord(IC_table, word_operand);
                     *IC += 1;
                 }
 
@@ -408,13 +423,13 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 if (destAddressType == 3 && sourceAddressType == 3)
                 {
                     /*if both registers addressType - it's only 1 world
-                    * from 2-4 the surce register and from 5-7 the dest register
-                    */
+                     * from 2-4 the surce register and from 5-7 the dest register
+                     */
                     RegNumber reg_num = {0};
-                    char* regWord; 
+                    char *regWord;
                     /*convert registers to integer*/
-                    int firstReg = atoi(firstOp+1);
-                    int secondReg = atoi(secondOp+1);
+                    int firstReg = atoi(firstOp + 1);
+                    int secondReg = atoi(secondOp + 1);
 
                     reg_num.source_reg = firstReg;
                     reg_num.dest_reg = secondReg;
@@ -430,7 +445,6 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                         char *second_arg = extract_brackets(firstOp, 2);
                         char *bin_second = addressToBinatry(0, second_arg, st, '.');
 
-
                         *IC += 2;
                         printf("F1:%s, S2:%s\n", first_arg, second_arg);
 
@@ -442,7 +456,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     }
                     else
                     {
-                        char* fWord_bin = addressToBinatry(sourceAddressType, firstOp, st, 's');
+                        char *fWord_bin = addressToBinatry(sourceAddressType, firstOp, st, 's');
                         addWord(IC_table, fWord_bin);
                         *IC += 1;
                     }
@@ -464,7 +478,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     }
                     else
                     {
-                        char* sWord_bin = addressToBinatry(destAddressType, secondOp, st, 'd');
+                        char *sWord_bin = addressToBinatry(destAddressType, secondOp, st, 'd');
                         addWord(IC_table, sWord_bin);
                         *IC += 1;
                     }
@@ -519,9 +533,9 @@ int checkAddressType(char *operand, SymbolTable *st)
     /* Addressing no 3: '11' - register addressing */
     else if (*operand == 'r' && isdigit(*(operand + 1)) && *(operand + 2) == '\0')
     {
-        operand++;               /*passing the 'r'*/
-        int reg = atoi(operand); /*convert the register number to integer*/
-        if (reg < 8 && reg >= 0) /*check if the register number is valid*/
+        /*passing the 'r'*/
+        int reg = atoi(operand + 1); /*convert the register number to integer*/
+        if (reg < 8 && reg >= 0)     /*check if the register number is valid*/
             return 3;
         else
         {
@@ -667,13 +681,14 @@ char *extract_brackets(const char *input, int part)
 }
 
 /*get the address binary from world with addressType*/
-char* addressToBinatry(int addressType, char* p, SymbolTable *st, char addressC)
+char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC)
 {
     if (addressType == 0) /* meaning the arg starts with #*/
     {
         int sVal;
         Number sNum = {0};
-        if (*p == '#'){
+        if (*p == '#')
+        {
             p++; /*passing on #*/
         }
 
@@ -684,20 +699,24 @@ char* addressToBinatry(int addressType, char* p, SymbolTable *st, char addressC)
     else if (addressType == 3) /*if it's a register*/
     {
         RegNumber regNum = {0}; /*using the first word to get the 'dest' holding the register number*/
-        int rVal= atoi(p+1);
-        if (addressC == 'd'){
+        int rVal = atoi(p + 1);
+        if (addressC == 'd')
+        {
             regNum.dest_reg = rVal;
         }
-        else if (addressC == 's'){
+        else if (addressC == 's')
+        {
             regNum.source_reg = rVal;
         }
-        
+
         return getRegNumberBinary(&regNum);
     }
-    else if(addressType == 1){
+    else if (addressType == 1)
+    {
         return p;
     }
-    else { 
+    else
+    {
         printf("!!! Only 0, 1 or 3 address type is valid !!!");
         return NULL;
     }
@@ -706,16 +725,42 @@ char* addressToBinatry(int addressType, char* p, SymbolTable *st, char addressC)
 int main(void)
 {
     char outputFileName[] = "/Users/razbuxboim/Desktop/University/Open University semesters/2024/2024 a/מעבדה בתכנות מערכות/AsmblerProject/preAsmbler/textFiles/m.am";
+    
+    /* create Tables for storing the code image */
     WordList IC_table = {NULL, 0};
     WordList DC_table = {NULL, 0};
+    
+    
+    
+    /* counters for tracking the code and instruction */
+    int DC = 0; /* Data counter */
+    int IC = 0; /* Instruction counter */
+    int Flag = 0; /* Flag for errors */
+    /* create and initialize the symbol table */
+    SymbolTable st;
+    initSymbolTable(&st);
 
-    startFirstProcess(outputFileName, &DC_table, &IC_table);
+    /* first process fill the symbol-table & create code image in the IC_DC tables */
+    startFirstProcess(outputFileName, &DC_table, &IC_table, &st, DC, IC, &Flag);
 
     printf("DC_WordList >> ");
     printWordListReverse(&DC_table);
 
-    printf("\n");
-    printf("IC_WordList >> ");
+    printf("\nIC_WordList >> ");
     printWordListReverse(&IC_table);
+
+    /* second process change the lables in IC_table to binary code */
+    startSecondProcess(&DC_table, &IC_table, &st, &Flag);
+
+    /* if there were no errors create the files and encrypt the machine code */
+    if (Flag != 0){
+        printf("There were %d number of error >> the program won't create the files", Flag);
+    }
+    else {
+        /* encrypt and create the code files */
+        printf("Complete processing >> creating files now.");
+    }
+
+
     return 0;
 }

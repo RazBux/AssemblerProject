@@ -3,8 +3,8 @@ CC=gcc
 CFLAGS=-ansi -Wall -pedantic -g
 
 # Target to build the executable directly from source files
-firstProcess: firstProcess.c util.c printBinary.c dataCodeTable.c
-	$(CC) $(CFLAGS) firstProcess.c util.c printBinary.c dataCodeTable.c -o firstProcess
+firstProcess: firstProcess.c util.c printBinary.c dataCodeTable.c secondProcess.c
+	$(CC) $(CFLAGS) firstProcess.c util.c printBinary.c dataCodeTable.c secondProcess.c -o firstProcess
 
 # Target to run the program
 run: firstProcess

@@ -153,6 +153,21 @@ int hasSymbol(const SymbolTable *st, const char *name)
     return 0;
 }
 
+int hasSymbol_exen(const SymbolTable *st, const char *name, char* ex_prop)
+{
+    size_t i;
+    for (i = 0; i < st->symbolCount; i++)
+    {
+        if (strcmp(st->symbols[i].symbol, name) == 0 && 
+            (strcmp(st->symbols[i].prop, ex_prop) == 0 ))
+        {
+            printf("Error: %s is already in the symbol table", name);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /**
  * Checks if a symbol exists in the SymbolTable and returns a pointer to its value.
  * @param st A pointer to the SymbolTable.
@@ -175,6 +190,28 @@ int getSymbolIndex(const SymbolTable *st, const char *name)
     }
     return -1; /* Return NULL if the symbol is not found */
 }
+
+
+/**
+ * Checks if a symbol exists in the SymbolTable and have code or data prop
+ * and returns a pointer to its value.
+ * @param st A pointer to the SymbolTable.
+ * @param name The name of the symbol to check.
+ * @return Pointer to the value of the symbol if it exists, NULL otherwise.
+ */
+int getSymbolIndex_dc(const SymbolTable *st, const char *name)
+{
+    size_t i;
+    for (i = 0; i < st->symbolCount; i++)
+    {
+        if (strcmp(st->symbols[i].symbol, name) == 0 && ((strcmp(st->symbols[i].prop, "code") == 0 || strcmp(st->symbols[i].prop, "data") == 0)) )
+        {
+            return i; /* Return the address of the symbol's value */
+        }
+    }
+    return -1; /* Return NULL if the symbol is not found */
+}
+
 
 /**
  * Frees all resources associated with a SymbolTable.
