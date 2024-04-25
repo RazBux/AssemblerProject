@@ -108,8 +108,21 @@ void add_macro(MacroStorage *storage, const char *name, char *text)
         storage->names = realloc(storage->names, storage->size * sizeof(char *));
         storage->texts = realloc(storage->texts, storage->size * sizeof(char *));
     }
+    /*
     storage->names[storage->count] = strdup(name);
     storage->texts[storage->count] = strdup(text);
+    */
+
+    storage->names[storage->count] = malloc(strlen(name) + 1);
+    storage->texts[storage->count] = malloc(strlen(text) + 1);
+
+    if (storage->names[storage->count] == NULL || storage->texts[storage->count] == NULL){
+    	printf("Fail to allocate memory");
+    	exit(1);
+    }
+    
+    strcpy(storage->names[storage->count],name);
+    strcpy(storage->texts[storage->count],text);
 
     storage->count++;
 }

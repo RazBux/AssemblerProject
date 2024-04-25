@@ -20,7 +20,7 @@ $(EXECUTABLE): $(SOURCES)
 
 # Target to run the program
 run: $(EXECUTABLE)
-	./$(EXECUTABLE)
+	./$(EXECUTABLE) m
 
 # Target to clean the project
 clean:

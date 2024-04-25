@@ -8,7 +8,6 @@
 #include <ctype.h> /* Character type functions */
 #include <limits.h> /* Definitions of common variable type characteristics */
 
-#include "util.h" /* Utility functions and definitions */
 #include "printBinary.h" /* Binary print function definitions */
 #include "dataCodeTable.h" /* Data Code Table manipulations */
 #include "secondProcess.h" /* Second processing stage functions */

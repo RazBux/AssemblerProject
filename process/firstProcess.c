@@ -16,7 +16,7 @@
 
 int checkAddressType(char *operand, SymbolTable *st);
 int processLine(char *, WordList *, WordList *, SymbolTable *, int *, int *);
-int startFirstProcess(char *, WordList *, WordList *, SymbolTable *, int , int, int *);
+int startFirstProcess(char *, WordList *, WordList *, SymbolTable *, int, int, int *);
 char *extract_brackets(const char *, int);
 char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC);
 
@@ -43,7 +43,7 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
 
     printf("\nprint symbol table:::\n");
     printSymbols(st);
-    
+
     /* status of IC and DC */
     /*
     printf("\nIC:: %d\n", IC);
@@ -119,6 +119,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             if (label != NULL)
             { /*if the alloction is was successful*/
                 strncpy(label, p, pLen - 1);
+                label[pLen] = '\0';
                 printf("LABLE: %s > ", label);
             }
             /* check for valid lable name */
@@ -237,7 +238,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             /* the asmbler need to ignore this line and will print worning massage */
             else if (strcmp(p, ".extern") == 0 || strcmp(p, ".entry") == 0)
             {
-                char* e = strcmp(p, ".extern") == 0 ? "external" : "entry";
+                char *e = strcmp(p, ".extern") == 0 ? "external" : "entry";
                 p = strtok(NULL, ", \n");
                 if (p == NULL)
                 {
@@ -249,10 +250,11 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 {
                     if (!hasSymbol_exen(st, p, e))
                     {
-                        printf("New %s => %s. ",e ,p);
+                        printf("New %s => %s. ", e, p);
                         addSymbol(st, p, e, 0);
                     }
-                    else return -1;
+                    else
+                        return -1;
                     p = strtok(NULL, ", \n");
                 }
 
@@ -291,7 +293,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             }
 
             /* G:2 commands - 1 operand */
-            /* "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr", */ 
+            /* "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr", */
             else if (strcmp("clr", p) == 0 || strcmp("not", p) == 0 || strcmp("inc", p) == 0 || strcmp("jmp", p) == 0 || strcmp("bne", p) == 0 || strcmp("jsr", p) == 0 || strcmp("prn", p) == 0 || strcmp("red", p) == 0 || strcmp("dec", p) == 0)
             {
                 int addressType;
@@ -339,7 +341,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     int sVal;
 
                     *IC += 2;
-                    
+
                     /* printf("F1:%s, S2:%s\n", first_arg, second_arg); */
 
                     /*for the secode arg -> check if it's a number or mdefine and convert to binary*/
@@ -519,7 +521,7 @@ int checkAddressType(char *operand, SymbolTable *st)
     /* Addressing no 0: '00' - with # . it's can be number after of define value*/
     if (*operand == '#')
     {
-        char *numberPart = operand + 1; /* Skip the '#' to point to the next part */ 
+        char *numberPart = operand + 1; /* Skip the '#' to point to the next part */
         /*printf("number = %s\n", numberPart);*/
         if (isInteger(numberPart))
         {
@@ -554,62 +556,76 @@ int checkAddressType(char *operand, SymbolTable *st)
         ---> in the seconde run we schold check if the symbol exsist */
     else if (*(operand + strlen(operand) - 1) == ']')
     {
-
-        const char *found = strchr(operand, '[');
-        if (found != NULL)
+        const char *firstBrack = strchr(operand, '[');
+        if (firstBrack != NULL)
         {
-            int lableLen = found - operand;               /*index of the [*/
-            char *label = (char *)malloc((lableLen) + 1); /*pointer of [*/
-            char *index;
-            int indexLen;
+            const char *secondBrack = strchr(operand, ']');
+
+            int firstBracketIdx = firstBrack - operand;
+            int secondBracketIdx = secondBrack - operand;
+
+            char *lab_name = (char *)malloc(firstBracketIdx + 1);
+            char *lab_number = (char *)malloc(secondBracketIdx - firstBracketIdx);
+
             int checkStDefine;
 
-            strncpy(label, operand, lableLen);
-            /* label[lableLen] = '\0'; */ 
+            if (secondBrack == NULL)
+            {
+                perror("Mismatched brackets");
+                return -1;
+            }
 
-            if (label == NULL)
+
+            if (lab_name == NULL || lab_number == NULL)
             {
                 perror("Failed to allocate memory");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
 
-            if (!isValidLable(label)) /*check if it's an lable name*/
+            strncpy(lab_name, operand, firstBracketIdx);
+            lab_name[firstBracketIdx] = '\0'; /*Null-terminate the string*/
+            printf("LAB.NAME >> %s", lab_name);
+
+            strncpy(lab_number, firstBrack + 1, secondBracketIdx - firstBracketIdx - 1);
+            lab_number[secondBracketIdx - firstBracketIdx - 1] = '\0'; /*Null-terminate the string*/
+            printf("  LAB.NUMBER >> %s\n", lab_number);
+
+            if (!isValidLable(lab_name)) /*Check if it's a valid label name*/
             {
-                free(label);
-                printf("Error: invalid LABLE");
-                return -1; /* there is problem with the lables... */
+                free(lab_name);
+                free(lab_number);
+                printf("Error: invalid LABEL");
+                return -1;
             }
 
-            indexLen = strlen(operand) - lableLen - 2;
-            /* check the next word if it's a valid word */
-            index = (char *)malloc(indexLen);
-
-            if (index == NULL)
-            {
-                printf("Memory allocation failed\n");
-                exit(1);
-            }
-            strncpy(index, found + 1, indexLen);
-
-            checkStDefine = getSymbolIndex(st, index);
+            checkStDefine = getSymbolIndex(st, lab_number);
             if (checkStDefine > -1)
             {
                 if (strcmp(st->symbols[checkStDefine].prop, "mdefine") != 0)
                 {
-                    printf("Error: %s isn't a .define\n", index);
+                    printf("Error: %s isn't a .define\n", lab_number);
+                    free(lab_name);
+                    free(lab_number);
                     return -1;
                 }
             }
-            else if (!isInteger(index))
+            else if (!isInteger(lab_number))
             {
-                printf("Error: %s isn't an integer\n", index);
+                printf("Error: %s isn't an integer\n", lab_number);
+                free(lab_name);
+                free(lab_number);
                 return -1;
             }
 
-            free(label);
-            free(index);
+            free(lab_name);
+            free(lab_number);
 
             return 2;
+        }
+        else
+        {
+            printf("Error: No closing bracket were found\n");
+            return -1;
         }
     }
     /* Addressing no 1: '01' - getting the from data LABLE .string, .data, .extern */
@@ -622,7 +638,7 @@ int checkAddressType(char *operand, SymbolTable *st)
 
     /* if it not one of the addressing type - return -1 = invalid type*/
     printf("Error: invalid type of addressing\n");
-    return -1; /* invalid addressing type */ 
+    return -1; /* invalid addressing type */
 }
 
 /*
@@ -727,26 +743,25 @@ char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC)
         printf("!!! Only 0, 1 or 3 address type is valid !!!");
         return NULL;
     }
-
 }
 
 /*
 int checkInHouse_main(void)
 {
     char outputFileName[] = "/Users/razbuxboim/Desktop/University/Open University semesters/2024/2024 a/מעבדה בתכנות מערכות/AsmblerProject/preAsmbler/textFiles/m.am";
-    
+
 
     WordList IC_table = {NULL, 0};
     WordList DC_table = {NULL, 0};
-    
+
 
     WordList extF = {NULL, 0};
     WordList entF = {NULL, 0};
 
-    int DC = 0; 
-    int IC = 0; 
-    int Flag = 0; 
-    int E = 100; 
+    int DC = 0;
+    int IC = 0;
+    int Flag = 0;
+    int E = 100;
 
     SymbolTable st;
     initSymbolTable(&st);
@@ -760,7 +775,7 @@ int checkInHouse_main(void)
     printWordListReverse(&IC_table);
 
     startSecondProcess(&DC_table, &IC_table, &entF, &extF, &st, &Flag);
-    
+
     printf("DC >> ");
     printWordListReverse(&DC_table);
 
@@ -772,7 +787,7 @@ int checkInHouse_main(void)
 
     printf("\nEntry >> ");
     printWordList(&entF);
-    
+
     if (Flag != 0){
         printf("There were %d number of error >> the program won't create the files", Flag);
     }
@@ -782,7 +797,7 @@ int checkInHouse_main(void)
         printf("  %d  %d\n", IC_table.count, DC_table.count);
         printEncryptionReverse(&IC_table, &E);
         printEncryptionReverse(&DC_table, &E);
-        
+
     }
 
 

@@ -60,9 +60,25 @@ void addSymbol(SymbolTable *st, char *symbol, char *prop, int val)
     }
     st->symbols = newArray;
 
-    /* Allocate memory and copy the strings to ensure the data is owned by the array */
+    /* 
     st->symbols[st->symbolCount].symbol = strdup(symbol);
     st->symbols[st->symbolCount].prop = strdup(prop);
+    */
+
+    st->symbols[st->symbolCount].symbol = malloc(strlen(symbol) + 1);
+    st->symbols[st->symbolCount].prop = malloc(strlen(prop) + 1);
+    
+    if (st->symbols[st->symbolCount].symbol == NULL || st->symbols[st->symbolCount].prop == NULL){
+        printf("Fail to allocate memory");
+        exit(1);
+    }
+
+    st->symbols[st->symbolCount].symbol[strlen(symbol)] = '\0';
+    st->symbols[st->symbolCount].prop[strlen(symbol)] = '\0';
+
+    strcpy(st->symbols[st->symbolCount].symbol, symbol);
+    strcpy(st->symbols[st->symbolCount].prop, prop);
+    
     st->symbols[st->symbolCount].val = val;
 
     st->symbolCount++; /* Increment the count of symbols */

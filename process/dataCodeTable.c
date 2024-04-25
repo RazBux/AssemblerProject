@@ -38,7 +38,16 @@ void changeWord(WordList *list, int position, const char *newWord) {
     }
 
     free(current->word); /* Free the old word */
-    current->word = strdup(newWord); /* Allocate memory and copy the new word */
+
+    /*current->word = strdup(newWord);*/ 
+
+    current->word = malloc(strlen(newWord) + 1);
+    if (current-> word == NULL){
+        printf("Fail to allocate memory");
+        exit(1);
+    }
+    strcpy(current->word, newWord);
+
 }
 
 /* Function to print all words in the linked list */
