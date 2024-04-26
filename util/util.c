@@ -541,5 +541,3 @@ char* createExtendedFileName(const char* fileName, const char* extension) {
     return outputFileName;
 }
 
-
-

@@ -120,7 +120,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             { /*if the alloction is was successful*/
                 /*strncpy(label, p, pLen - 1);*/
                 strcpy(label, p);
-                label[strlen(p)-1] = '\0';
+                label[strlen(p) - 1] = '\0';
                 printf("LABLE: %s > ", label);
             }
             /* check for valid lable name */
@@ -306,7 +306,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 addressType = checkAddressType(p, st);
                 if (addressType == -1)
                 {
-                    printf("Error: exit line because of error in address type\n");
+                    /* printf("Error: exit line because of error in address type\n"); */
                     return -1;
                 }
                 printf("operand %s addressType: %d\n", p, addressType);
@@ -386,14 +386,46 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 char *secondOp;
                 char *opName = (char *)malloc(strlen(p) + 1);
 
+                /* check if the memoty was allocat */
+                if (opName == NULL)
+                {
+                    printf("Memoty allocatuin fail");
+                    exit(1);
+                }
                 strcpy(opName, p);
 
-                p = strtok(NULL, ", \n"); /*get the first operande*/
+                /* --- first operand --- */
+                p = strtok(NULL, ","); /*get the first operande*/
+                if (p == NULL)
+                {
+                    printf("Error: Operand missing or no comma separator found\n");
+                    return -1;
+                }
                 firstOp = (char *)malloc(strlen(p) + 1);
+                if (firstOp == NULL)
+                {
+                    printf("Error: Memory allocation failed for first operand.\n");
+                    free(opName);
+                    exit(1);
+                }
                 strcpy(firstOp, p);
 
-                p = strtok(NULL, ", \n"); /*get the second operande*/
+                /* --- second operand --- */
+                p = strtok(NULL, " \n"); /*get the second operande*/
+                if (p == NULL)
+                {
+                    printf("Error: Operand missing or no comma separator found\n");
+                    return -1;
+                }
+
                 secondOp = (char *)malloc(strlen(p) + 1);
+                if (secondOp == NULL)
+                {
+                    printf("Error: Memory allocation failed for first operand.\n");
+                    free(opName);
+                    free(firstOp);
+                    exit(1);
+                }
                 strcpy(secondOp, p);
 
                 /* check for address types */
@@ -401,7 +433,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                 destAddressType = checkAddressType(secondOp, st);
                 if (destAddressType == -1 || sourceAddressType == -1)
                 {
-                    printf("Error: exit line because of error in address type\n");
+                    /* printf("Error: exit line because of error in address type\n"); */
                     return -1;
                 }
 
@@ -503,6 +535,10 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     printf("Error: %s operade allow only 1 after it.", p);
                     return -1;
                 }
+
+                free(opName);
+                free(firstOp);
+                free(secondOp);
             }
         }
         else
@@ -572,30 +608,29 @@ int checkAddressType(char *operand, SymbolTable *st)
 
             if (secondBrack == NULL)
             {
-                perror("Mismatched brackets");
+                printf("Error: Mismatched brackets\n");
                 return -1;
             }
-
 
             if (lab_name == NULL || lab_number == NULL)
             {
                 perror("Failed to allocate memory");
-                exit(EXIT_FAILURE);
+                exit(1);
             }
 
             strncpy(lab_name, operand, firstBracketIdx);
             lab_name[firstBracketIdx] = '\0'; /*Null-terminate the string*/
-            printf("LAB.NAME >> %s", lab_name);
+            /*printf("LAB.NAME >> %s", lab_name);*/
 
             strncpy(lab_number, firstBrack + 1, secondBracketIdx - firstBracketIdx - 1);
             lab_number[secondBracketIdx - firstBracketIdx - 1] = '\0'; /*Null-terminate the string*/
-            printf("  LAB.NUMBER >> %s\n", lab_number);
+            /* printf("  LAB.NUMBER >> %s\n", lab_number); */
 
             if (!isValidLable(lab_name)) /*Check if it's a valid label name*/
             {
                 free(lab_name);
                 free(lab_number);
-                printf("Error: invalid LABEL");
+                printf("Error: %s invalid a LABEL\n", lab_name);
                 return -1;
             }
 
@@ -632,10 +667,7 @@ int checkAddressType(char *operand, SymbolTable *st)
     /* Addressing no 1: '01' - getting the from data LABLE .string, .data, .extern */
     /* soft check if it's can be a valid lable */
     else if (isValidLable(operand))
-    {
-        /* printf("%s can be a valid lable\n", operand); */
         return 1;
-    }
 
     /* if it not one of the addressing type - return -1 = invalid type*/
     printf("Error: invalid type of addressing\n");

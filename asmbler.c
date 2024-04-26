@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 {
     int i;
     for (i = 1; i < argc; i++)
-    {
+    {   
         /********************************************************
          ********************CREATE VARIABLES********************
          ********************************************************/
@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
         /********************************************************
          ********************START PROCESSING********************
          ********************************************************/
+        printf("-----START OF %s.as ----\n\n", argv[i]);
+
         /* PreAsembler - after finish the .am file will be writen */
         startPreAsmbler(asInputFile, asOutputFile);
 
@@ -57,7 +59,7 @@ int main(int argc, char *argv[])
         /* if there were no errors create the files and encrypt the machine code */
         if (Flag != 0)
         {
-            printf("There were %d number of error >> the program won't create the files", Flag);
+            printf("There were %d number of error >> the program won't create the files\n", abs(Flag));
         }
         else
         {
@@ -93,6 +95,8 @@ int main(int argc, char *argv[])
         freeWordList(&entWL);
         freeWordList(&extWL);
         
+        
+        printf("\n-----END OF %s.as ----\n\n", argv[i]);
     }
 
     return 0;

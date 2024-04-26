@@ -333,7 +333,7 @@ int startPreAsmbler(char *inputFileName, char *outputFileName)
     }
     else
     {
-        perror("Failed to open input file for reading macros");
+        printf("Failed to open \"%s\" file for reading macros", inputFileName);
         exit(1);
     }
 
