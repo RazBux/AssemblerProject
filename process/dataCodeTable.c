@@ -80,17 +80,42 @@ void printWordListReverse(const WordList *list) {
 /* Helper function to create a new node */
 Node* createNode(const char *word) {
     Node *newNode = (Node*) malloc(sizeof(Node));
+    char *newWord;
     if (newNode == NULL) {
-        return NULL; /* Memory allocation failed */
+        printf("Error: memory allocation failed for node");
+        exit(1);  /* Exit if the node allocation fails */
     }
 
-    newNode->word = strdup(word); /* Duplicate the word for the node */
-    if (newNode->word == NULL) {
-        free(newNode);
-        return NULL; /* Memory allocation failed */
+    newWord = (char *)malloc(strlen(word) + 1);
+    if (newWord == NULL) {
+        printf("Error: memory allocation failed for word");
+        free(newNode);  /* Free the previously allocated node */
+        exit(1);  /* Exit if the word allocation fails */
     }
 
-    newNode->next = NULL;
-    return newNode;
+    strcpy(newWord, word);  /* Copy the word into the newly allocated memory */
+    newNode->word = newWord;  /* Assign the wocat ard to the node */
+    newNode->next = NULL;     /* Initialize the next pointer to NULL */
+
+    return newNode;  /* Return the newly created node */
 }
+
+
+/* Function to free all memory of the WordList */
+void freeWordList(WordList *list) {
+    Node *current = list->head;   /* Start with the head of the list */
+    Node *next;
+
+    while (current != NULL) {
+        next = current->next;     /* Save the pointer to the next node */
+        free(current->word);      /* Free the word stored in the current node */
+        free(current);            /* Free the current node itself */
+        current = next;           /* Move to the next node */
+    }
+
+    list->head = NULL;            /* After freeing all nodes, set the head to NULL */
+    list->count = 0;              /* Reset the word count to 0 */
+}
+
+
 

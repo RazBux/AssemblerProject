@@ -118,8 +118,9 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             label = (char *)malloc(pLen); /*Allocate memory for label, including space for null terminator*/
             if (label != NULL)
             { /*if the alloction is was successful*/
-                strncpy(label, p, pLen - 1);
-                label[pLen] = '\0';
+                /*strncpy(label, p, pLen - 1);*/
+                strcpy(label, p);
+                label[strlen(p)-1] = '\0';
                 printf("LABLE: %s > ", label);
             }
             /* check for valid lable name */

@@ -78,7 +78,7 @@ void printSymbols(const SymbolTable *st);
 void icdcSymbolTable(const SymbolTable *st, int IC);
 
 /* Free the memory of the SymbolTable array we allocate during both Process */
-void freeSymbolTable(SymbolTable **st);
+void freeSymbolTable(SymbolTable *st);
 
 /* Write all the symbol to file after finish to collect them and there is no error during the second run */
 void writeSymbolTableToFile(const SymbolTable *st, const char *filename);

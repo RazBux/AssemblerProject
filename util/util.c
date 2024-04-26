@@ -234,17 +234,17 @@ int getSymbolIndex_dc(const SymbolTable *st, const char *name)
  * Frees all resources associated with a SymbolTable.
  * @param st A pointer to a pointer of the SymbolTable to free.
  */
-void freeSymbolTable(SymbolTable **st)
+void freeSymbolTable(SymbolTable *st)
 {
     size_t i;
-    for (i = 0; i < (*st)->symbolCount; i++)
+    for (i = 0; i < st->symbolCount; i++)
     {
-        free((*st)->symbols[i].symbol);
-        free((*st)->symbols[i].prop);
+        free(st->symbols[i].symbol);
+        free(st->symbols[i].prop);
     }
-    free((*st)->symbols);
-    (*st)->symbols = NULL;
-    (*st)->symbolCount = 0;
+    free(st->symbols);
+    st->symbols = NULL;
+    st->symbolCount = 0;
 }
 
 /**

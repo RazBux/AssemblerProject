@@ -4,7 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
-#include "util.h"
+#include "../util/util.h"
 #include "printBinary.h"
 #include "dataCodeTable.h"
 

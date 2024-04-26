@@ -86,6 +86,13 @@ int main(int argc, char *argv[])
                 printWordList(&entWL);
             }
         }
+
+        freeSymbolTable(&st);
+        freeWordList(&IC_table);
+        freeWordList(&DC_table);
+        freeWordList(&entWL);
+        freeWordList(&extWL);
+        
     }
 
     return 0;
