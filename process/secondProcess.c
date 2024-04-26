@@ -14,9 +14,11 @@ int startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, W
 
     Node *current;
     int trackIC = IC_table->count + 100 - 1;
-
-    /* adding the entries and externs into thier lists */
     size_t i;
+
+    printf("\n --- START SECOND PROCESS ---\n");
+    
+    /* adding the entries and externs into thier lists */
     for (i = 0; i < st->symbolCount; i++)
     {
         if (strcmp(st->symbols[i].prop, "external") == 0)
@@ -80,6 +82,8 @@ int startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, W
         current = current->next;
         trackIC -= 1;
     }
+
+    printf("\n --- SECOND PROCESS COMPLETE ---\n");
 
     return 0;
 }

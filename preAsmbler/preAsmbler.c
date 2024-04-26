@@ -328,13 +328,14 @@ int startPreAsmbler(char *inputFileName, char *outputFileName)
 
     if (file)
     {
+        printf("\n--- START PRE-ASSMBLER ---\n");
         read_macros_from_file(file, &storage, outputFileName);
         fclose(file);
     }
     else
     {
-        printf("Failed to open \"%s\" file for reading macros", inputFileName);
-        exit(1);
+        printf("Error: Failed to open \"%s\" file.\n", inputFileName);
+        return -1;
     }
 
     /* Print all stored macros - Optional */
@@ -345,7 +346,8 @@ int startPreAsmbler(char *inputFileName, char *outputFileName)
 
     free_macro_storage(&storage);
 
-    printf("PreAssmbler complete!\nOutput written to: %s\n\n", outputFileName); 
+    printf("Output written to: %s\n", outputFileName); 
+    printf("\n--- PRE-ASSMBLER COMPLETE! ---\n");
 
     return 0;
 }

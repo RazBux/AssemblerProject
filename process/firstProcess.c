@@ -29,8 +29,11 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
     if (!file)
     {
         perror("Open .am file - after open macro => failed");
+        *Flag -= 1;
         return -1;
     }
+
+    printf("\n--- STRT FIRST PROCESS ---\n");
 
     /*start processing line by line*/
     while (fgets(line, MAX_LINE_LENGTH, file) != NULL)
@@ -51,6 +54,8 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
     */
 
     fclose(file);
+
+    printf("\n--- COMPLETE FIRST PROCESS ---\n\n");
 
     return 0;
 }

@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 {
     int i;
     for (i = 1; i < argc; i++)
-    {   
+    {
         /********************************************************
          ********************CREATE VARIABLES********************
          ********************************************************/
@@ -42,17 +42,19 @@ int main(int argc, char *argv[])
         /********************************************************
          ********************START PROCESSING********************
          ********************************************************/
-        printf("-----START OF %s.as ----\n\n", argv[i]);
+        printf("\n##### %5sASMBLER FILE %s.as %5s ####\n", "", argv[i], "");
 
         /* PreAsembler - after finish the .am file will be writen */
-        startPreAsmbler(asInputFile, asOutputFile);
+        Flag += startPreAsmbler(asInputFile, asOutputFile);
 
-        /* first process fill the symbol-table & create code image in the IC_DC tables */
-        startFirstProcess(asOutputFile, &DC_table, &IC_table, &st, DC, IC, &Flag);
+        if (Flag == 0)
+        {
+            /* first process fill the symbol-table & create code image in the IC_DC tables */
+            startFirstProcess(asOutputFile, &DC_table, &IC_table, &st, DC, IC, &Flag);
 
-        /* second process change the lables in IC_table to binary code */
-        startSecondProcess(&DC_table, &IC_table, &entWL, &extWL, &st, &Flag);
-
+            /* second process change the lables in IC_table to binary code */
+            startSecondProcess(&DC_table, &IC_table, &entWL, &extWL, &st, &Flag);
+        }
         /****************************************************
          ********************FILW WRITING********************
          ****************************************************/
@@ -94,9 +96,8 @@ int main(int argc, char *argv[])
         freeWordList(&DC_table);
         freeWordList(&entWL);
         freeWordList(&extWL);
-        
-        
-        printf("\n-----END OF %s.as ----\n\n", argv[i]);
+
+        printf("##### %5sEND OF %s.as %5s #### \n", "", argv[i], "");
     }
 
     return 0;
