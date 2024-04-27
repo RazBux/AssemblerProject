@@ -7,20 +7,10 @@
 #include "printBinary.h"
 #include "dataCodeTable.h"
 #include "../util/util.h"
+#include "firstProcess.h"
 
-/*
-#include "secondProcess.h"
-#include "../encryption/encryption.h"
-#include "../preAsmbler/preAsmbler.h"
-*/
 
-int checkAddressType(char *operand, SymbolTable *st);
-int processLine(char *, WordList *, WordList *, SymbolTable *, int *, int *);
-int startFirstProcess(char *, WordList *, WordList *, SymbolTable *, int, int, int *);
-char *extract_brackets(const char *, int);
-char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC);
-
-int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table, SymbolTable *st, int DC, int IC, int *Flag)
+void startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table, SymbolTable *st, int DC, int IC, int *Flag)
 {
     FILE *file = fopen(asmblerOpenFile, "r");
     char line[MAX_LINE_LENGTH];
@@ -30,7 +20,7 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
     {
         perror("Open .am file - after open macro => failed");
         *Flag -= 1;
-        return -1;
+        return;
     }
 
     printf("\n--- STRT FIRST PROCESS ---\n");
@@ -57,7 +47,6 @@ int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_ta
 
     printf("\n--- COMPLETE FIRST PROCESS ---\n\n");
 
-    return 0;
 }
 
 /*

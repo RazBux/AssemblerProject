@@ -14,7 +14,6 @@
 #include "../encryption/encryption.h" /* Encryption related functions */
 #include "../preAsmbler/preAsmbler.h" /* Pre-assembler processing functions */
 
-/** Function prototypes for handling the assembly process. */
 
 /**
  * Checks the type of address for the given operand.
@@ -47,7 +46,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
  * @param Flag Pointer to a flag indicating process status.
  * @return Integer status, 0 if successful, -1 if failed.
  */
-int startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table, SymbolTable *st, int DC, int IC, int *Flag);
+void startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table, SymbolTable *st, int DC, int IC, int *Flag);
 
 /**
  * Extracts content enclosed by brackets based on the specified part.

@@ -2,11 +2,8 @@
 #include <stdlib.h>
 #include "../process/dataCodeTable.h"
 #include "../util/util.h"
+#include "encryption.h"
 
-char* encryptBinary(const char *binary);
-void encryptionReverse(const Node *node, int *E);
-void printEncryptionReverse(const WordList *list, int *E);
-void encryptionToFile(const Node *node, FILE *file, int *E);
 
 /**
  * Converts a 14-digit binary sequence into a 7-character encrypted string.
@@ -38,7 +35,14 @@ char* encryptBinary(const char *binary) {
     return encrypted;
 }
 
-/* Recursive helper function to print nodes in reverse */
+
+/** 
+ * Recursive helper function to print that 
+ * reverses the encryption process using a node structure.
+ * 
+ * @param node Pointer to the node structure representing the data to be reversed.
+ * @param E Pointer to an integer array used in the decryption process.
+ */
 void encryptionReverse(const Node *node, int *E) {
     if (node != NULL) {
         encryptionReverse(node->next, E);  /*Traverse to the end of the list*/ 
@@ -49,12 +53,17 @@ void encryptionReverse(const Node *node, int *E) {
     }
 }
 
-/* Function to print all words in the linked list from end to start */
+
+/**
+ * Prints the reversed encryption from a list.
+ * 
+ * @param list Pointer to a WordList containing encrypted data.
+ * @param E Pointer to an integer array used in the decryption process.
+ */
 void printEncryptionReverse(const WordList *list, int *E) {
     encryptionReverse(list->head, E);
 }
 
-/**/
 
 /**
  * Writes the words in a linked list in reverse order with recursion to a given file.
@@ -117,9 +126,3 @@ void writeWordListToFile(const WordList *list, const char *fileName) {
 
     fclose(file);  /* Close the file */
 }
-
-
-
-
-
-

@@ -3,15 +3,12 @@
 #include <string.h>
 #include "dataCodeTable.h"
 
-/* Function prototypes */
-void addWord(WordList *list, const char *word);
-void changeWord(WordList *list, int position, const char *newWord);
-void printWordList(const WordList *list);
-void printWordsReverse(const Node *node);
-void printWordListReverse(const WordList *list);
-Node* createNode(const char *word);
 
-/* Function to add a word to the linked list */
+/** Adds a word to the start of a linked list.
+ * 
+ * @param list Pointer to the WordList to add the word to.
+ * @param word The word to add to the list.
+ */
 void addWord(WordList *list, const char *word) {
     Node *newNode = createNode(word); /* Create a new node with the given word */
     if (newNode == NULL) return; /* Memory allocation failed */
@@ -23,7 +20,14 @@ void addWord(WordList *list, const char *word) {
     list->count++; /* Increment the count of words */
 }
 
-/* Function to change a word in the linked list by position */
+
+/**
+ * Changes a word in the linked list at a specified position.
+ * 
+ * @param list Pointer to the WordList containing the word.
+ * @param position The position of the word to change.
+ * @param newWord The new word to replace the old word.
+ */
 void changeWord(WordList *list, int position, const char *newWord) {
     int i;
     Node *current;
@@ -50,7 +54,12 @@ void changeWord(WordList *list, int position, const char *newWord) {
 
 }
 
-/* Function to print all words in the linked list */
+
+/**
+ * Prints all words in the linked list.
+ * 
+ * @param list Pointer to the WordList to be printed.
+ */
 void printWordList(const WordList *list) {
     
     Node *current = list->head;
@@ -62,7 +71,12 @@ void printWordList(const WordList *list) {
     printf("\n");
 }
 
-/* Recursive helper function to print nodes in reverse */
+
+/**
+ * Recursively prints the words in the linked list in reverse order.
+ * 
+ * @param node The current node in the recursion.
+ */
 void printWordsReverse(const Node *node) {
     if (node != NULL) {
         printWordsReverse(node->next);  /*Traverse to the end of the list*/ 
@@ -70,14 +84,25 @@ void printWordsReverse(const Node *node) {
     }
 }
 
-/* Function to print all words in the linked list from end to start */
+
+/**
+ * Prints all words in the linked list from end to start.
+ * 
+ * @param list Pointer to the WordList to be printed in reverse.
+ */
 void printWordListReverse(const WordList *list) {
     printf("Word List (Reversed): \n");
     printWordsReverse(list->head);
     printf("\n");
 }
 
-/* Helper function to create a new node */
+
+/**
+ * Creates a new node for a word and initializes it.
+ * 
+ * @param word The word to store in the node.
+ * @return A pointer to the newly created node, or NULL if memory allocation fails.
+ */
 Node* createNode(const char *word) {
     Node *newNode = (Node*) malloc(sizeof(Node));
     char *newWord;
@@ -101,7 +126,11 @@ Node* createNode(const char *word) {
 }
 
 
-/* Function to free all memory of the WordList */
+/**
+ * Frees all memory allocated for the WordList.
+ * 
+ * @param list Pointer to the WordList to be freed.
+ */
 void freeWordList(WordList *list) {
     Node *current = list->head;   /* Start with the head of the list */
     Node *next;
@@ -116,6 +145,3 @@ void freeWordList(WordList *list) {
     list->head = NULL;            /* After freeing all nodes, set the head to NULL */
     list->count = 0;              /* Reset the word count to 0 */
 }
-
-
-

@@ -5,7 +5,10 @@
 #include "preAsmbler.h"
 #include "../util/util.h"
 
-/* Initialize macro storage */
+/** 
+ * Initializes the macro storage with initial capacity.
+ * @param storage Pointer to the MacroStorage structure.
+ */
 void init_macro_storage(MacroStorage *storage)
 {
     storage->size = INITIAL_MACRO_COUNT;
@@ -14,7 +17,11 @@ void init_macro_storage(MacroStorage *storage)
     storage->texts = malloc(storage->size * sizeof(char *));
 }
 
-/* Method to clean the macroText from lots of tabs and unnessecry white spaces to simplified and make the work easier */
+/** 
+ * Cleans input text by removing unnecessary whitespace.
+ * @param src Pointer to the original text.
+ * @return Pointer to the cleaned text. The caller is responsible for freeing this memory.
+ */
 char *clean_text(const char *src)
 {
     char *cleanedText;
@@ -68,6 +75,7 @@ char *clean_text(const char *src)
 
     return cleanedText; /* Return the dynamically allocated cleaned text */
 }
+
 
 /* Function to print all stored macros */
 void print_stored_macros(const MacroStorage *storage)

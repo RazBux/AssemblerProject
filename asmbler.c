@@ -11,6 +11,7 @@
 #include "process/printBinary.h"
 #include "encryption/encryption.h"
 
+
 int main(int argc, char *argv[])
 {
     int i;
