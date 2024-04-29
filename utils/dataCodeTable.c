@@ -3,6 +3,7 @@
 #include <string.h>
 #include "dataCodeTable.h"
 
+
 /** Adds a word to the start of a linked list.
  * 
  * @param list Pointer to the WordList to add the word to.
