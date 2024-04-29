@@ -3,13 +3,27 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
-
-#include "printBinary.h"
-#include "dataCodeTable.h"
-#include "../util/util.h"
 #include "firstProcess.h"
+#include "../utils/printBinary.h"
+
+/* in house functions */
+int checkAddressType(char *operand, SymbolTable *st);
+int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable *st, int *DC, int *IC);
+char *extract_brackets(const char *input, int part);
+char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC);
 
 
+/**
+ * Starts the first process of assembly translation.
+ * @param asmblerOpenFile Filename of the assembler input.
+ * @param DC_table Data code table.
+ * @param IC_table Instruction code table.
+ * @param st Symbol table.
+ * @param DC Data counter initial value.
+ * @param IC Instruction counter initial value.
+ * @param Flag Pointer to a flag indicating process status.
+ * @return Integer status, 0 if successful, -1 if failed.
+ */
 void startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_table, SymbolTable *st, int DC, int IC, int *Flag)
 {
     FILE *file = fopen(asmblerOpenFile, "r");
@@ -49,19 +63,28 @@ void startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_t
 
 }
 
-/*
-    This function process the line of the original Asembly code.
-    there are 5 possible line
-    1: empty: all lite is white spaces or tabs
-    2: comment: the first char of the line is ";"
-    3: directive: tell the asembler what to do.
-        direcrive line -does not- preduce a machine instruction binary output
-    4: instruction: line that preduce a binary for the machine
-    5: defining constent: creating a const variable
+/**
+ * Processes a single line of assembler code.
+ * @param line String containing the line to process.
+ * @param DC_table Pointer to data code table for data definitions.
+ * @param IC_table Pointer to instruction code table for instruction definitions.
+ * @param st Pointer to the symbol table.
+ * @param DC Pointer to the data counter.
+ * @param IC Pointer to the instruction counter.
+ * @return Integer status, 0 if successful, 1 if there is an error.
+ * 
+ * This function process the line of the original Asembly code.
+ * there are 5 possible line
+ * 1: empty: all lite is white spaces or tabs
+ * 2: comment: the first char of the line is ";"
+ * 3: directive: tell the asembler what to do.
+ *    direcrive line -does not- preduce a machine instruction binary output
+ * 4: instruction: line that preduce a binary for the machine
+ * 5: defining constent: creating a const variable
 
-    if there is an error - the function will return 1.
-    that's how the program will know to not preduce the files at the end.
-*/
+ * if there is an error - the function will return 1.
+ * that's how the program will know to not preduce the files at the end.
+ */
 int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable *st, int *DC, int *IC)
 {
     size_t pLen; /* for checking the if it's a lable */
@@ -546,10 +569,20 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
     return 0;
 }
 
-/* this method check what kind of type address the operand have */
+/**
+ * Checks the type of address for the given operand.
+ * @param operand The operand string to analyze.
+ * @param st Pointer to the symbol table.
+ * @return Integer representing the address type.
+ * 
+ * '00' -> direct addressing # with number of define: #(x)
+ * '01' -> valid lable name: LABLE 
+ * '10' -> index with number or define: y[x]
+ * '11' -> register types: r(x)
+ */
 int checkAddressType(char *operand, SymbolTable *st)
 {
-    /* Addressing no 0: '00' - with # . it's can be number after of define value*/
+    /* Addressing no 0: '00' - with # . it's can be number after of define value */
     if (*operand == '#')
     {
         char *numberPart = operand + 1; /* Skip the '#' to point to the next part */
@@ -668,7 +701,12 @@ int checkAddressType(char *operand, SymbolTable *st)
     return -1; /* invalid addressing type */
 }
 
-/*
+/**
+ * Extracts content enclosed by brackets based on the specified part.
+ * @param input The string input containing brackets.
+ * @param part The part of the bracket content to extract (1 or 2).
+ * @return Dynamically allocated string of the extracted content.
+ *
  * Function to extract contents based on part:
  * part = 1 for the content inside the first level of brackets.
  * part = 2 for the content inside the second level of brackets.
@@ -730,7 +768,14 @@ char *extract_brackets(const char *input, int part)
     return output; /* Return the dynamically allocated substring */
 }
 
-/*get the address binary from world with addressType*/
+/**
+ * Converts an address to a binary representation based on the address type.
+ * @param addressType Type of address (0, 1, 2, or 3).
+ * @param p Pointer to the operand string.
+ * @param st Pointer to the symbol table.
+ * @param addressC Character indicating the address code ('s' for source, 'd' for destination).
+ * @return Dynamically allocated string representing the binary code.
+ */
 char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC)
 {
     if (addressType == 0) /* meaning the arg starts with #*/
@@ -826,7 +871,6 @@ int checkInHouse_main(void)
         printEncryptionReverse(&DC_table, &E);
 
     }
-
 
     return 0;
 }

@@ -1,10 +1,5 @@
-
 #ifndef dataCodeTable_H
 #define dataCodeTable_H
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 
 /* Define a struct for the linked list nodes */

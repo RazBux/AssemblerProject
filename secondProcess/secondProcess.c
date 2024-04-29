@@ -1,8 +1,11 @@
-#include "printBinary.h"
-#include "dataCodeTable.h"
-#include "../util/util.h"
+#include <stdlib.h>
+#include <string.h>
 #include "secondProcess.h"
+#include "../utils/util.h"
+#include "../utils/printBinary.h"
 
+
+int searchWordLL(char *, WordList *);
 
 /**
  * "Second process" handling the conversion and linking of

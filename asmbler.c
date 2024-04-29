@@ -1,14 +1,9 @@
-
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include "util/util.h"
+#include "utils/util.h" 
+#include "utils/dataCodeTable.h"
 #include "preAsmbler/preAsmbler.h"
-#include "process/dataCodeTable.h"
-#include "process/firstProcess.h"
-#include "process/secondProcess.h"
-#include "process/printBinary.h"
+#include "firstProcess/firstProcess.h"
+#include "secondProcess/secondProcess.h"
 #include "encryption/encryption.h"
 
 

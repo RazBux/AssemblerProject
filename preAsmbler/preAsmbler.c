@@ -1,9 +1,8 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "preAsmbler.h"
-#include "../util/util.h"
+#include "../utils/util.h"
 
 /** 
  * Initializes the macro storage with initial capacity.

@@ -1,9 +1,6 @@
 #ifndef PRINT_BINARY_H
 #define PRINT_BINARY_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 typedef struct First_word {
     unsigned int not_in_use : 4;

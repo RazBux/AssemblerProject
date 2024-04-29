@@ -1,16 +1,8 @@
 #ifndef secondProcess_H
 #define secondProcess_H
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <limits.h>
-#include "../util/util.h"
-#include "printBinary.h"
-#include "dataCodeTable.h"
-
+#include "../utils/dataCodeTable.h"
+#include "../utils/util.h"
 
 /**
  * "Second process" handling the conversion and linking of
@@ -30,17 +22,6 @@
  * @param Flag Pointer to an integer flag used for error handling; modified if errors occur.
  */
 void startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, WordList *extF, SymbolTable *st, int *Flag);
-
-
-/**
- * Compares each word in the linked list with a given string.
- * If a match is found, returns 1. Otherwise, returns 0.
- *
- * @param list A pointer to the WordList to traverse.
- * @param compareWord The string to compare against each word in the list.
- * @return 1 if a match is found, 0 otherwise.
- */
-int searchWordLL(char *LABLE, WordList *wl);
 
 
 #endif

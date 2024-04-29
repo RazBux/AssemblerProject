@@ -1,10 +1,8 @@
-/* utils.h */
-
 #ifndef INSTRUCTION_UTILS_H
 #define INSTRUCTION_UTILS_H
 
 #include <stdio.h>
-#include <string.h>
+
 
 /* Include global values if needed */
 #define MAX_LINE_LENGTH 80
@@ -13,7 +11,6 @@
 #define MEMORY_SIZE 4096
 #define INITIAL_MACRO_COUNT 10
 #define WORD_LEN 14
-
 
 
 /* Defines the codes for the supported operations */
@@ -105,6 +102,5 @@ int isValidLable(char* lable);
 char* combineIntStr(const char *str, int num);
 
 char* createExtendedFileName(const char* fileName, const char* extension);
-
 
 #endif /* INSTRUCTION_UTILS_H */

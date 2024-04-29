@@ -1,8 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../process/dataCodeTable.h"
-#include "../util/util.h"
-#include "encryption.h"
+#include "encryption.h" 
+#include "../utils/dataCodeTable.h"
+#include "../utils/util.h"
+
+/* in house function protutype*/
+char* encryptBinary(const char *binary);
+void encryptionReverse(const Node *node, int *E);
+void printEncryptionReverse(const WordList *list, int *E);
+void encryptionToFile(const Node *node, FILE *file, int *E);
 
 
 /**
@@ -66,30 +72,6 @@ void printEncryptionReverse(const WordList *list, int *E) {
 
 
 /**
- * Writes the words in a linked list in reverse order with recursion to a given file.
- * @param list1 First word list to process.
- * @param list2 Second word list to process.
- * @param fileName The name of the file where to write the content.
- */
-void writeEncryptionToFile(const WordList *IC_table, const WordList *DC_table, const char *fileName) {
-    int E = 100;  /* Starting value for E */
-    FILE *file = fopen(fileName, "w");  /* Open file for writing */
-
-    if (file == NULL) {
-        perror("Failed to open file");
-        return;
-    }
-    
-    fprintf(file, "  %d  %d\n", IC_table->count, DC_table->count);
-    
-    /* Process each list in reverse and write to file */
-    encryptionToFile(IC_table->head, file, &E);
-    encryptionToFile(DC_table->head, file, &E);
-
-    fclose(file);  /* Close the file */
-}
-
-/**
  * Helper function to recursively write nodes in reverse to a file.
  * @param node Current node in the linked list.
  * @param file File pointer to write data.
@@ -123,6 +105,31 @@ void writeWordListToFile(const WordList *list, const char *fileName) {
         fprintf(file, "%s\n", current->word);  /* Write the current word to the file */
         current = current->next;  /* Move to the next node */
     }
+
+    fclose(file);  /* Close the file */
+}
+
+
+/**
+ * Writes the words in a linked list in reverse order with recursion to a given file.
+ * @param list1 First word list to process.
+ * @param list2 Second word list to process.
+ * @param fileName The name of the file where to write the content.
+ */
+void writeEncryptionToFile(const WordList *IC_table, const WordList *DC_table, const char *fileName) {
+    int E = 100;  /* Starting value for E */
+    FILE *file = fopen(fileName, "w");  /* Open file for writing */
+
+    if (file == NULL) {
+        perror("Failed to open file");
+        return;
+    }
+    
+    fprintf(file, "  %d  %d\n", IC_table->count, DC_table->count);
+    
+    /* Process each list in reverse and write to file */
+    encryptionToFile(IC_table->head, file, &E);
+    encryptionToFile(DC_table->head, file, &E);
 
     fclose(file);  /* Close the file */
 }
