@@ -10,11 +10,12 @@
  */
 void init_macro_storage(MacroStorage *storage)
 {
-    storage->size = INITIAL_MACRO_COUNT;
+    storage->size = 10;
     storage->count = 0;
     storage->names = malloc(storage->size * sizeof(char *));
     storage->texts = malloc(storage->size * sizeof(char *));
 }
+
 
 /** 
  * Cleans input text by removing unnecessary whitespace.
@@ -76,7 +77,11 @@ char *clean_text(const char *src)
 }
 
 
-/* Function to print all stored macros */
+/**
+ * Prints all stored macros from the macro storage. Each macro's name and text are displayed.
+ *
+ * @param storage Pointer to the MacroStorage structure containing the macros to be printed.
+ */
 void print_stored_macros(const MacroStorage *storage)
 {
     int i;
@@ -93,7 +98,15 @@ void print_stored_macros(const MacroStorage *storage)
     }
 }
 
-/* Function that add a macro to the storage. both the name and the text of the macro */
+
+/**
+ * Adds a new macro definition to the macro storage, including its name and text. If the current storage capacity is reached, it doubles the storage size.
+ * Text is cleaned of unnecessary whitespace before storage.
+ *
+ * @param storage Pointer to the MacroStorage structure where the macro is to be added.
+ * @param name Pointer to the string containing the macro's name.
+ * @param text Pointer to the string containing the macro's text.
+ */
 void add_macro(MacroStorage *storage, const char *name, char *text)
 {
     /* Clean the text from spaces and others */
@@ -115,10 +128,6 @@ void add_macro(MacroStorage *storage, const char *name, char *text)
         storage->names = realloc(storage->names, storage->size * sizeof(char *));
         storage->texts = realloc(storage->texts, storage->size * sizeof(char *));
     }
-    /*
-    storage->names[storage->count] = strdup(name);
-    storage->texts[storage->count] = strdup(text);
-    */
 
     storage->names[storage->count] = malloc(strlen(name) + 1);
     storage->texts[storage->count] = malloc(strlen(text) + 1);
@@ -134,7 +143,11 @@ void add_macro(MacroStorage *storage, const char *name, char *text)
     storage->count++;
 }
 
-/* Free macro storage */
+
+/** 
+ * Frees all allocated memory associated with the macro storage.
+ * @param storage Pointer to the MacroStorage to be freed.
+ */
 void free_macro_storage(MacroStorage *storage)
 {
     int i;
@@ -147,7 +160,14 @@ void free_macro_storage(MacroStorage *storage)
     free(storage->texts);
 }
 
-/* Function to get the macro name */
+
+/**
+ * Extracts the macro name from a given line of text if it contains a macro declaration.
+ * Assumes the format 'mcr [macro_name]' to identify and extract the macro name.
+ *
+ * @param line The input string from which the macro name is to be extracted.
+ * @return A pointer to a newly allocated string containing the macro name, or NULL if no macro name is found or memory allocation fails. The caller is responsible for freeing this memory.
+ */
 char *get_macro_name(char *line)
 {
     char *p;
@@ -164,7 +184,6 @@ char *get_macro_name(char *line)
             {
                 size_t len = strlen(p);
                 macro_name = malloc(len + 1);
-                /* macro_name = malloc(strlen(p) + 1); */
                 if (macro_name == NULL)
                 {
                     return NULL;
@@ -188,11 +207,16 @@ char *get_macro_name(char *line)
     return NULL;
 }
 
-/* This function read the Assmbler program file and take all the macro from it. */
+
+/** This function read the Assmbler program file and take all the macro from it.  
+ * @param file Name of the file to process for macro expansion.
+ * @param storage Pointer to the MacroStorage containing all defined macros. 
+ * @param outputFileName Name of the ".am" file for writing the new parse macro content.
+ */
 void read_macros_from_file(FILE *file, MacroStorage *storage, const char *outputFileName)
 {
     char line[MAX_LINE_LENGTH];
-    char name[MAX_MACRO_NAME] = {0};
+    char name[MAX_LEN_NAME] = {0};
     char text[MAX_LINE_LENGTH * 10] = {0};
     int readingMacro = 0;
 
@@ -213,6 +237,7 @@ void read_macros_from_file(FILE *file, MacroStorage *storage, const char *output
             strcpy(name, mcrName);
             text[0] = '\0'; /* Reset text buffer */
             readingMacro = 1;
+            free(mcrName);
         }
         else if (strstr(line, " endmcr") != NULL && readingMacro)
         {
@@ -243,11 +268,14 @@ void read_macros_from_file(FILE *file, MacroStorage *storage, const char *output
     fclose(outputFile);
 }
 
-/*
-    This function add all the MacroText where it's find their coresponding MacroName
-    for exsample: if there is a macroName: "mm", so in all the palces there is "mm"
-    the name will be removed and the macroText of "mm" will be displayed
-*/
+
+/** 
+ * Processes the text in the output file, replacing macro calls with the appropriate macro text.
+ * for exsample: if there is a macroName: "mm", so in all the palces there is "mm"
+ * the name will be removed and the macroText of "mm" will be displayed
+ * @param outputFileName Name of the file to process for macro expansion.
+ * @param storage Pointer to the MacroStorage containing all defined macros. 
+ */
 void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
 {
     FILE *outputFile = fopen(outputFileName, "r");
@@ -319,6 +347,13 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
     rename("tempfile.txt", outputFileName);
 }
 
+
+/** 
+ * Main function to start the pre-assembly process, coordinating file reading, macro processing, and output file generation.
+ * @param inputFileName Name of the assembler file to process.
+ * @param outputFileName Name of the file to output processed text.
+ * @return Integer status code indicating the success or failure of the operation.
+ */
 int startPreAsmbler(char *inputFileName, char *outputFileName)
 {
     /* change this to recives the files name. and them chagne the name to

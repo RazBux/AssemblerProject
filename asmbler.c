@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
             startSecondProcess(&DC_table, &IC_table, &entWL, &extWL, &st, &Flag);
         }
         /****************************************************
-         ********************FILW WRITING********************
+         ********************FILE WRITTING********************
          ****************************************************/
         /* if there were no errors create the files and encrypt the machine code */
         if (Flag != 0)

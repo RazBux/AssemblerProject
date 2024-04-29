@@ -3,7 +3,6 @@
 
 #include "../utils/dataCodeTable.h" 
 
-
 /**
  * Writes the words in a linked list in reverse order with recursion to a given file.
  * the recuresion needed due to the insertion of the words to get the FIFO ordered.

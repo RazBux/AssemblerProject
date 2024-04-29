@@ -128,7 +128,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
         /* Lable check:
             if there is a lable in the first word,
             by see if the last char is ":" */
-        else if (*(p + pLen - 1) == ':' && pLen < MAX_LABLE_NAME)
+        else if (*(p + pLen - 1) == ':' && pLen < MAX_LEN_NAME)
         {
             char *label;
 

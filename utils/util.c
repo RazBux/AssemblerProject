@@ -17,11 +17,14 @@ const char *saved_words[] = {
     NULL /* Sentinel to mark the end of the array */
 };
 
+
 /**
- * Checks if a given word is in the array of saved words.
+ * Checks if a given word is one of the saved words, which include commands and register names.
+ * Saved words are defined in a constant array.
  *
  * @param word The word to check against the saved words.
- * @return Returns 1 if the word is found, 0 otherwise.
+ * @return Returns -1 if the word is found (indicating an error due to reserved word usage),
+ *         0 otherwise.
  */
 int checkWord(const char *word)
 {
@@ -38,10 +41,12 @@ int checkWord(const char *word)
     return 0; /* Word is not found */
 }
 
+
 /**
- * Adds a new symbol along with its properties and value to the SymbolTable.
- * This function dynamically resizes the symbol array within the SymbolTable to accommodate the new symbol.
- * @param st A pointer to the SymbolTable to add the symbol to.
+ * Adds a new symbol to the symbol table, dynamically resizing the symbol array if necessary.
+ * The symbol, its properties, and its value are stored in the table.
+ *
+ * @param st Pointer to the SymbolTable to add the symbol.
  * @param symbol The symbol name as a string.
  * @param prop The property associated with the symbol as a string.
  * @param val The integer value associated with the symbol.
@@ -84,10 +89,12 @@ void addSymbol(SymbolTable *st, char *symbol, char *prop, int val)
     st->symbolCount++; /* Increment the count of symbols */
 }
 
+
 /**
  * Initializes a SymbolTable by setting the symbols pointer to NULL
- * and symbolCount to 0, indicating an empty table.
- * @param st A pointer to the SymbolTable to initialize.
+ * and the symbol count to 0, indicating an empty table.
+ *
+ * @param st Pointer to the SymbolTable to initialize.
  */
 void initSymbolTable(SymbolTable *st)
 {
@@ -95,9 +102,11 @@ void initSymbolTable(SymbolTable *st)
     st->symbolCount = 0; /* No symbols initially */
 }
 
+
 /**
- * Prints all symbols in the SymbolTable.
- * @param st A pointer to the SymbolTable to print.
+ * Prints all symbols stored in the SymbolTable along with their properties and values.
+ *
+ * @param st Pointer to the SymbolTable containing the symbols to be printed.
  */
 void printSymbols(const SymbolTable *st)
 {
@@ -132,6 +141,7 @@ void printSymbols(const SymbolTable *st)
  * Add proper value for 'code' or 'data'.
  * for data - add the IC (counter for instruction code) + 100 (starting place of the program)
  * for code - add 100 for starting place of the program.
+ * 
  * @param st A pointer to the SymbolTable to print.
  * @param IC The counter of the instruction code.
  */
@@ -152,6 +162,7 @@ void icdcSymbolTable(const SymbolTable *st, int IC)
 
 /**
  * Checks if a symbol exists in the SymbolTable.
+ * 
  * @param st A pointer to the SymbolTable.
  * @param name The name of the symbol to check.
  * @return 1 if the symbol exists, 0 otherwise.
@@ -170,6 +181,15 @@ int hasSymbol(const SymbolTable *st, const char *name)
     return 0;
 }
 
+
+/**
+ * Checks if a symbol with specific properties already exists in the symbol table.
+ *
+ * @param st A pointer to the symbol table where symbols are stored.
+ * @param name A pointer to the string representing the name of the symbol to check.
+ * @param ex_prop A pointer to the string representing the expected property of the symbol.
+ * @return 1 if the symbol with the specified property exists, 0 otherwise.
+ */
 int hasSymbol_exen(const SymbolTable *st, const char *name, char* ex_prop)
 {
     size_t i;
@@ -185,8 +205,10 @@ int hasSymbol_exen(const SymbolTable *st, const char *name, char* ex_prop)
     return 0;
 }
 
+
 /**
  * Checks if a symbol exists in the SymbolTable and returns a pointer to its value.
+ * 
  * @param st A pointer to the SymbolTable.
  * @param name The name of the symbol to check.
  * @return Pointer to the value of the symbol if it exists, NULL otherwise.
@@ -212,6 +234,7 @@ int getSymbolIndex(const SymbolTable *st, const char *name)
 /**
  * Checks if a symbol exists in the SymbolTable and have code or data prop
  * and returns a pointer to its value.
+ * 
  * @param st A pointer to the SymbolTable.
  * @param name The name of the symbol to check.
  * @return Pointer to the value of the symbol if it exists, NULL otherwise.
@@ -231,8 +254,11 @@ int getSymbolIndex_dc(const SymbolTable *st, const char *name)
 
 
 /**
- * Frees all resources associated with a SymbolTable.
- * @param st A pointer to a pointer of the SymbolTable to free.
+ * Frees all resources associated with a SymbolTable. After calling this function,
+ * all symbols and their associated properties are deallocated, and the symbol table's
+ * pointer is set to NULL to prevent dangling references.
+ *
+ * @param st A pointer to the SymbolTable to free.
  */
 void freeSymbolTable(SymbolTable *st)
 {
@@ -247,8 +273,10 @@ void freeSymbolTable(SymbolTable *st)
     st->symbolCount = 0;
 }
 
+
 /**
  * Writes the contents of a SymbolTable to a file.
+ * 
  * @param st A pointer to the SymbolTable.
  * @param filename The name of the file to write to.
  */
@@ -268,6 +296,7 @@ void writeSymbolTableToFile(const SymbolTable *st, const char *filename)
     }
     fclose(file);
 }
+
 
 /**
  * Processes a line assumed to define a symbol with a constant value,
@@ -342,7 +371,13 @@ int addDefine(char *p, SymbolTable *st)
     }
 }
 
-/* Function to check if a word is in saved_words */
+
+/**
+ * Checks if a given word is an opcode saved in the list of known opcodes.
+ *
+ * @param word A pointer to the string representing the word to check.
+ * @return 0 if the word is a known opcode, 1 otherwise.
+ */
 int isOpCode(char *word)
 {
     int i;
@@ -352,7 +387,8 @@ int isOpCode(char *word)
         /*G:2 command - 1 operands*/
         "clr", "not", "inc", "dec", "jmp", "bne", "red", "prn", "jsr",
         /*G:3 no operands */
-        "rts", "hlt"};
+        "rts", "hlt"
+    };
 
     int numWords = sizeof(saved_words) / sizeof(saved_words[0]);
     for (i = 0; i < numWords; i++)
@@ -365,6 +401,13 @@ int isOpCode(char *word)
     return 1; /* no match found */
 }
 
+
+/**
+ * Retrieves the opcode for a given command string.
+ *
+ * @param command A pointer to the string representing the command.
+ * @return The corresponding opcode if found, -1 otherwise.
+ */
 op_code getOpCode(const char *command)
 {
     /*---try to make this static for reuseable*/
@@ -385,6 +428,7 @@ op_code getOpCode(const char *command)
     }
     return -1; /* if it's not opcode */
 }
+
 
 /**
  * Checks if a string represents a valid integer. The function accounts for leading whitespace,
@@ -425,6 +469,7 @@ int isInteger(const char *str)
 
     return 1; /* Only digits (possibly with leading sign and whitespace) were found */
 }
+
 
 /**
  * Normalizes a given string in-place by removing all spaces directly before and after commas.
@@ -475,6 +520,16 @@ void normalizeString(char *input)
     input[j] = '\0'; /* Null-terminate the modified string */
 }
 
+
+/**
+ * Checks if a given string is a valid label.
+ * 
+ * A valid label must start with an alphabetical character, followed by
+ * any combination of alphanumeric characters.
+ * 
+ * @param lable A pointer to the string to be checked.
+ * @return 1 if the string is a valid label, -1 otherwise.
+ */
 int isValidLable(char* lable){
     int i;
     /* the first char of a LABLE need to be alphaBatic */
@@ -491,6 +546,7 @@ int isValidLable(char* lable){
     }
     return 1;
 }
+
 
 /**
  * Combines an integer and a string into a formatted string.
@@ -540,4 +596,3 @@ char* createExtendedFileName(const char* fileName, const char* extension) {
 
     return outputFileName;
 }
-

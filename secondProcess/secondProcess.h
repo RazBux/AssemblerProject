@@ -23,5 +23,4 @@
  */
 void startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, WordList *extF, SymbolTable *st, int *Flag);
 
-
 #endif
