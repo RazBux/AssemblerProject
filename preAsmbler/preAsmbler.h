@@ -3,6 +3,7 @@
 
 #include <stdio.h> 
 
+
 /** Structure to store macros including arrays for macro names and texts */
 typedef struct {
     char **names;    /* Array of macro names */

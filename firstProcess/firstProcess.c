@@ -5,7 +5,7 @@
 #include "firstProcess.h"
 #include "../utils/printBinary.h"
 
-/* in house functions */
+
 int checkAddressType(char *operand, SymbolTable *st);
 int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable *st, int *DC, int *IC);
 char *extract_brackets(const char *input, int part);

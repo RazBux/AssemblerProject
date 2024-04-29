@@ -7,6 +7,7 @@
 
 int searchWordLL(char *, WordList *);
 
+
 /**
  * "Second process" handling the conversion and linking of
  * labels (entries and externals) to their binary and address representations.
