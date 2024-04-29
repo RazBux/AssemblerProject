@@ -4,7 +4,6 @@
 #include "../utils/dataCodeTable.h"
 #include "../utils/util.h"
 
-/* in house function protutype*/
 char* encryptBinary(const char *binary);
 void encryptionReverse(const Node *node, int *E);
 void printEncryptionReverse(const WordList *list, int *E);

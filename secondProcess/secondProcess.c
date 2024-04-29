@@ -36,7 +36,7 @@ void startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, 
     int trackIC = IC_table->count + 100 - 1;
     size_t i;
 
-    printf("\n --- START SECOND PROCESS ---\n");
+    printf("\n--- START SECOND PROCESS ---\n");
     
     /* adding the entries and externs into thier lists */
     for (i = 0; i < st->symbolCount; i++)
@@ -103,7 +103,7 @@ void startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, 
         trackIC -= 1;
     }
 
-    printf("\n --- SECOND PROCESS COMPLETE ---\n");
+    printf("\n--- SECOND PROCESS COMPLETE ---\n");
 }
 
 /**

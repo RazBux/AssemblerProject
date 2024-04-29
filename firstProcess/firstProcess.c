@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -295,7 +294,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             {
                 fw.op_code = opC;
                 word = getFirstWordBinary(&fw);
-                printf("fw binay: %s\n", word);
+                /*printf("fw binay: %s\n", word);*/
                 addWord(IC_table, word);
                 *IC += 1;
 

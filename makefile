@@ -21,11 +21,11 @@ $(EXECUTABLE): $(SOURCES)
 
 # Target to run the program
 run: $(EXECUTABLE)
-	./$(EXECUTABLE) m
+	./$(EXECUTABLE) testFiles/m
 
 # Target to clean the project
 clean:
 	rm -f $(EXECUTABLE)
-	rm -f *.ob *.ext *.ent *.am
+	rm -f testFiles/*.ob testFiles/*.ext testFiles/*.ent testFiles/*.am
 
-#.PHONY: run clean
+.PHONY: run clean
