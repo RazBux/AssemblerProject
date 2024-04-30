@@ -4,8 +4,7 @@
 #include "preAsmbler.h"
 #include "../utils/util.h"
 
-
-/** 
+/**
  * Initializes the macro storage with initial capacity.
  * @param storage Pointer to the MacroStorage structure.
  */
@@ -17,8 +16,7 @@ void init_macro_storage(MacroStorage *storage)
     storage->texts = malloc(storage->size * sizeof(char *));
 }
 
-
-/** 
+/**
  * Cleans input text by removing unnecessary whitespace.
  * @param src Pointer to the original text.
  * @return Pointer to the cleaned text. The caller is responsible for freeing this memory.
@@ -77,7 +75,6 @@ char *clean_text(const char *src)
     return cleanedText; /* Return the dynamically allocated cleaned text */
 }
 
-
 /**
  * Prints all stored macros from the macro storage. Each macro's name and text are displayed.
  *
@@ -91,14 +88,14 @@ void print_stored_macros(const MacroStorage *storage)
         printf("Stored Macros:\n");
         for (i = 0; i < storage->count; i++)
         {
-            printf("%d:\nMacro Name: \n%s\nMacro Text:\n%s\n", i, storage->names[i], storage->texts[i]);
+            printf("\n%d:\nMacro Name: %s\nMacro Text:\n%s\n", i, storage->names[i], storage->texts[i]);
         }
     }
-    else {
+    else
+    {
         printf("There is no macro in this file\n");
     }
 }
-
 
 /**
  * Adds a new macro definition to the macro storage, including its name and text. If the current storage capacity is reached, it doubles the storage size.
@@ -112,15 +109,13 @@ void add_macro(MacroStorage *storage, const char *name, char *text)
 {
     /* Clean the text from spaces and others */
     char *cleanedText = clean_text(text);
-    if (cleanedText != NULL)
-    {
-        strcpy(text, cleanedText);
-        free(cleanedText); /* Free the allocated memory */
-    }
-    else
+    if (cleanedText == NULL)
     {
         printf("Memory allocation failed.\n");
+        exit(1);
     }
+    strcpy(text, cleanedText);
+    free(cleanedText); /* Free the allocated memory */
 
     if (storage->count == storage->size)
     {
@@ -133,19 +128,19 @@ void add_macro(MacroStorage *storage, const char *name, char *text)
     storage->names[storage->count] = malloc(strlen(name) + 1);
     storage->texts[storage->count] = malloc(strlen(text) + 1);
 
-    if (storage->names[storage->count] == NULL || storage->texts[storage->count] == NULL){
-    	printf("Fail to allocate memory");
-    	exit(1);
+    if (storage->names[storage->count] == NULL || storage->texts[storage->count] == NULL)
+    {
+        printf("Fail to allocate memory");
+        exit(1);
     }
-    
-    strcpy(storage->names[storage->count],name);
-    strcpy(storage->texts[storage->count],text);
+
+    strcpy(storage->names[storage->count], name);
+    strcpy(storage->texts[storage->count], text);
 
     storage->count++;
 }
 
-
-/** 
+/**
  * Frees all allocated memory associated with the macro storage.
  * @param storage Pointer to the MacroStorage to be freed.
  */
@@ -161,7 +156,6 @@ void free_macro_storage(MacroStorage *storage)
     free(storage->texts);
 }
 
-
 /**
  * Extracts the macro name from a given line of text if it contains a macro declaration.
  * Assumes the format 'mcr [macro_name]' to identify and extract the macro name.
@@ -174,7 +168,7 @@ char *get_macro_name(char *line)
     char *p;
     char delimiter[] = " ";
     char *macro_name;
-
+    printf("preAs >> %s", line);
     p = strtok(line, delimiter);
     while (p != NULL)
     {
@@ -208,10 +202,9 @@ char *get_macro_name(char *line)
     return NULL;
 }
 
-
-/** This function read the Assmbler program file and take all the macro from it.  
+/** This function read the Assmbler program file and take all the macro from it.
  * @param file Name of the file to process for macro expansion.
- * @param storage Pointer to the MacroStorage containing all defined macros. 
+ * @param storage Pointer to the MacroStorage containing all defined macros.
  * @param outputFileName Name of the ".am" file for writing the new parse macro content.
  */
 void read_macros_from_file(FILE *file, MacroStorage *storage, const char *outputFileName)
@@ -231,51 +224,60 @@ void read_macros_from_file(FILE *file, MacroStorage *storage, const char *output
     /*maybe need to change to MAX_LINE_LENGTH the sizeof(line)*/
     while (fgets(line, sizeof(line), file) != NULL)
     {
-        if (strstr(line, " mcr ") != NULL)
+        if (*line != ';')
         {
-            /* get the macro name and copy to name*/
-            char *mcrName = get_macro_name(line);
-            strcpy(name, mcrName);
-            text[0] = '\0'; /* Reset text buffer */
-            readingMacro = 1;
-            free(mcrName);
-        }
-        else if (strstr(line, " endmcr") != NULL && readingMacro)
-        {
-            add_macro(storage, name, text);
-            name[0] = '\0'; /* reset the mcaro name */
-            text[0] = '\0';
-            readingMacro = 0;
-        }
-        else if (readingMacro)
-        {
-            if (strlen(text) + strlen(line) < sizeof(text) - 1)
+            if (strstr(line, "mcr ") != NULL)
             {
-                /* Add to here: increase the memory if needed.. */
-                strcat(text, line);
+                /* get the macro name and copy to name*/
+                char *mcrName = get_macro_name(line);
+                if (mcrName == NULL)
+                {
+                    printf("Error: fail to alocate memory");
+                    exit(1);
+                }
+
+                strcpy(name, mcrName);
+                free(mcrName);
+
+                text[0] = '\0'; /* Reset text buffer */
+                readingMacro = 1;
+            }
+            else if (strstr(line, "endmcr") != NULL && readingMacro)
+            {
+                add_macro(storage, name, text);
+                name[0] = '\0'; /* reset the mcaro name */
+                text[0] = '\0';
+                readingMacro = 0;
+            }
+            else if (readingMacro)
+            {
+                if (strlen(text) + strlen(line) < sizeof(text) - 1)
+                {
+                    /* Add to here: increase the memory if needed.. */
+                    strcat(text, line);
+                }
+                else
+                {
+                    fprintf(stderr, "Macro text buffer overflow. Macro text may be truncated.\n");
+                }
             }
             else
             {
-                fprintf(stderr, "Macro text buffer overflow. Macro text may be truncated.\n");
+                /* write the line to the file */
+                fputs(line, outputFile);
             }
-        }
-        else
-        {
-            /* write the line to the file */
-            fputs(line, outputFile);
         }
     }
 
     fclose(outputFile);
 }
 
-
-/** 
+/**
  * Processes the text in the output file, replacing macro calls with the appropriate macro text.
  * for exsample: if there is a macroName: "mm", so in all the palces there is "mm"
  * the name will be removed and the macroText of "mm" will be displayed
  * @param outputFileName Name of the file to process for macro expansion.
- * @param storage Pointer to the MacroStorage containing all defined macros. 
+ * @param storage Pointer to the MacroStorage containing all defined macros.
  */
 void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
 {
@@ -348,8 +350,7 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
     rename("tempfile.txt", outputFileName);
 }
 
-
-/** 
+/**
  * Main function to start the pre-assembly process, coordinating file reading, macro processing, and output file generation.
  * @param inputFileName Name of the assembler file to process.
  * @param outputFileName Name of the file to output processed text.
@@ -389,7 +390,7 @@ int startPreAsmbler(char *inputFileName, char *outputFileName)
 
     free_macro_storage(&storage);
 
-    printf("Output written to: %s\n", outputFileName); 
+    printf("Output written to: %s\n", outputFileName);
     printf("\n--- PRE-ASSMBLER COMPLETE! ---\n");
 
     return 0;

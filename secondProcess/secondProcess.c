@@ -64,7 +64,7 @@ void startSecondProcess(WordList *DC_table, WordList *IC_table, WordList *entF, 
         /*cheack for symboles - if the starting char isn't 0 or 1 -> it's a LABLE*/
         if(!(*current->word == '0' || *current->word == '1')){
             Number labNum = {0};
-            
+            /* printf("line >> %s\n", current->word); */
             /* change the LABLE to bin & add the ARE. >> EXTERN: 01 {1} ENTRY:  10 {2} */
             /*if the value is extern*/
             if(searchWordLL(current->word, &externes)){

@@ -1,0 +1,19 @@
+; file ps.as
+.entry LIST 
+.extern W
+.define sz = 2 
+MAIN:       mov r3, LIST[sz]
+LOOP:       jmp W
+            prn #-5
+            mov STR[5],       STR[2] 
+            sub r1   ,     r4
+            cmp K,       #sz 
+            bne W
+            hlt
+            ope
+mm: 
+jmp r2,#2
+prn r1
+sub #2
+sub STR[1], STR[sz]
+STR: .data 4,6,353,56,4,-1

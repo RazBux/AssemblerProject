@@ -148,6 +148,11 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             if (checkWord(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
             {
                 p = strtok(NULL, delimiters); /* Get the next word-token */
+                if(p == NULL){
+                    printf("Error: there is no word after lable\n");
+                    return -1;
+                }
+
                 /*check what is the next word and if it's code or data*/
                 if (*p == '.' && (strcmp(p, ".data") == 0 || strcmp(p, ".string") == 0))
                 {
