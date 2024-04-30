@@ -10,8 +10,8 @@ L1:         inc LIST
 prn #-5
 mov STR[5], STR[2]  
 sub r1, r4
-cmp r3, #sz 
-bne END
+    cmp r3, #sz 
+    bne END
 inc K
 hlt
 cmp #3, r5

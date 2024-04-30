@@ -8,12 +8,10 @@
  * Initializes the macro storage with initial capacity.
  * @param storage Pointer to the MacroStorage structure.
  */
-void init_macro_storage(MacroStorage *storage)
-{
-    storage->size = 10;
+void init_macro_storage(MacroStorage *storage) {
+    storage->head = NULL;
     storage->count = 0;
-    storage->names = malloc(storage->size * sizeof(char *));
-    storage->texts = malloc(storage->size * sizeof(char *));
+
 }
 
 /**
@@ -80,20 +78,19 @@ char *clean_text(const char *src)
  *
  * @param storage Pointer to the MacroStorage structure containing the macros to be printed.
  */
-void print_stored_macros(const MacroStorage *storage)
-{
-    int i;
-    if (storage->count > 0)
-    {
-        printf("Stored Macros:\n");
-        for (i = 0; i < storage->count; i++)
-        {
-            printf("\n%d:\nMacro Name: %s\nMacro Text:\n%s\n", i, storage->names[i], storage->texts[i]);
-        }
+void print_stored_macros(const MacroStorage *storage) {
+    MacroNode *current = storage->head;
+    int i = 0;
+
+    if (current == NULL) {
+        printf("No macros stored.\n");
+        return;
     }
-    else
-    {
-        printf("There is no macro in this file\n");
+
+    printf("Stored Macros:\n");
+    while (current != NULL) {
+        printf("\n%d:\nMacro Name: %s\nMacro Text:\n%s\n", i++, current->name, current->text);
+        current = current->next;
     }
 }
 
@@ -105,56 +102,58 @@ void print_stored_macros(const MacroStorage *storage)
  * @param name Pointer to the string containing the macro's name.
  * @param text Pointer to the string containing the macro's text.
  */
-void add_macro(MacroStorage *storage, const char *name, char *text)
-{
-    /* Clean the text from spaces and others */
-    char *cleanedText = clean_text(text);
-    if (cleanedText == NULL)
-    {
+void add_macro(MacroStorage *storage, const char *name, const char *text) {
+    MacroNode *newNode = (MacroNode *)malloc(sizeof(MacroNode));
+    if (newNode == NULL) {
         printf("Memory allocation failed.\n");
         exit(1);
     }
-    strcpy(text, cleanedText);
-    free(cleanedText); /* Free the allocated memory */
 
-    if (storage->count == storage->size)
-    {
-        storage->size *= 2;
-        /* Increace the macro memory is needed and move all data to with realloc */
-        storage->names = realloc(storage->names, storage->size * sizeof(char *));
-        storage->texts = realloc(storage->texts, storage->size * sizeof(char *));
-    }
-
-    storage->names[storage->count] = malloc(strlen(name) + 1);
-    storage->texts[storage->count] = malloc(strlen(text) + 1);
-
-    if (storage->names[storage->count] == NULL || storage->texts[storage->count] == NULL)
-    {
-        printf("Fail to allocate memory");
+    /* Manually allocate memory for name and text */ 
+    newNode->name = malloc(strlen(name) + 1);  /* +1 for the null terminator */ 
+    if (newNode->name == NULL) {
+        printf("Memory allocation for name failed.\n");
+        free(newNode);  /* Don't forget to clean up already allocated memory */ 
         exit(1);
     }
+    strcpy(newNode->name, name);  /* Copy the name into the newly allocated space */ 
 
-    strcpy(storage->names[storage->count], name);
-    strcpy(storage->texts[storage->count], text);
+    newNode->text = malloc(strlen(text) + 1); 
+    if (newNode->text == NULL) {
+        printf("Memory allocation for text failed.\n");
+        free(newNode->name);
+        free(newNode);
+        exit(1);
+    }
+    strcpy(newNode->text, text);  /* Copy the text into the newly allocated space */ 
 
+    /* Link the new node at the beginning of the list */ 
+    newNode->next = storage->head;
+    storage->head = newNode;
     storage->count++;
 }
+
 
 /**
  * Frees all allocated memory associated with the macro storage.
  * @param storage Pointer to the MacroStorage to be freed.
  */
-void free_macro_storage(MacroStorage *storage)
-{
-    int i;
-    for (i = 0; i < storage->count; i++)
-    {
-        free(storage->names[i]);
-        free(storage->texts[i]);
+void free_macro_storage(MacroStorage *storage) {
+    MacroNode *current = storage->head;
+    MacroNode *next;
+
+    while (current != NULL) {
+        next = current->next;
+        free(current->name);
+        free(current->text);
+        free(current);
+        current = next;
     }
-    free(storage->names);
-    free(storage->texts);
+
+    storage->head = NULL;
+    storage->count = 0;
 }
+
 
 /**
  * Extracts the macro name from a given line of text if it contains a macro declaration.
@@ -300,10 +299,11 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
 
     while (fgets(line, sizeof(line), outputFile) != NULL)
     {
-        int i, lineModified = 0;
-        for (i = 0; i < storage->count && !lineModified; i++)
+        int lineModified = 0;
+        MacroNode *current = storage->head;
+        while (current != NULL && !lineModified)
         {
-            char *found = strstr(line, storage->names[i]);
+            char *found = strstr(line, current->name);
             if (found)
             {
                 /* Calculate indentation */
@@ -311,7 +311,7 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
                 char indentStr[MAX_LINE_LENGTH] = {0};
 
                 /* Split the macro text into lines and indent each line */
-                char *macroText = storage->texts[i];
+                char *macroText = current->text;
                 char *lineStart = macroText;
                 char *lineEnd;
 
@@ -335,6 +335,7 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
                 }
                 lineModified = 1;
             }
+            current = current->next;
         }
         if (!lineModified && strlen(line) > 1) /* To avoid writing empty lines */
         {
@@ -349,6 +350,7 @@ void add_macro_to_file(const char *outputFileName, MacroStorage *storage)
     remove(outputFileName);
     rename("tempfile.txt", outputFileName);
 }
+
 
 /**
  * Main function to start the pre-assembly process, coordinating file reading, macro processing, and output file generation.

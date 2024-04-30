@@ -4,12 +4,15 @@
 #include <stdio.h> 
 
 
-/** Structure to store macros including arrays for macro names and texts */
+typedef struct MacroNode {
+    char *name;    /* Array of macro names */
+    char *text;    /* Array of macro text replacements */
+    struct MacroNode *next; /* Pointer to the next node */ 
+} MacroNode;
+
 typedef struct {
-    char **names;    /* Array of macro names */
-    char **texts;    /* Array of macro text replacements */
-    size_t size;     /* Allocated size of arrays */
-    size_t count;    /* Number of stored macros */
+    MacroNode *head;        /* Pointer to the first macro node */ 
+    size_t count;           /* Number of stored macros */ 
 } MacroStorage;
 
 
