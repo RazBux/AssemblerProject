@@ -21,11 +21,20 @@ $(EXECUTABLE): $(SOURCES)
 
 # Target to run the program
 run: $(EXECUTABLE)
-	./$(EXECUTABLE) testFiles/m
+	@for file in $$(find testFiles/ -type f -name '*.as'); do \
+		trimmed=$$(echo "$$file" | sed 's/\.as$$//'); \
+		echo "Running $(EXECUTABLE) on $$trimmed"; \
+		./$(EXECUTABLE) "$$trimmed"; \
+	done
+
+.PHONY: run
+#./$(EXECUTABLE) testFiles/
 
 # Target to clean the project
 clean:
 	rm -f $(EXECUTABLE)
-	rm -f testFiles/*.ob testFiles/*.ext testFiles/*.ent testFiles/*.am
+	find testFiles/ -type f \( -name '*.ob' -o -name '*.ext' -o -name '*.ent' -o -name '*.am' \) -delete
+# rm -f testFiles/*.ob testFiles/*.ext testFiles/*.ent testFiles/*.am
+
 
 .PHONY: run clean
