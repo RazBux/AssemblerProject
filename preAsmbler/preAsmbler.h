@@ -3,7 +3,6 @@
 
 #include <stdio.h> 
 
-
 typedef struct MacroNode {
     char *name;    /* Array of macro names */
     char *text;    /* Array of macro text replacements */

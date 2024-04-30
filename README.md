@@ -1,24 +1,61 @@
-# Assembler Project
 
-This assembler is designed to translate assembly language programs into machine code. It's comprised of three key components: the Preassembler, the Assembler processor (with two distinct processes), and the Encryption module.
+# Assembler Project Overview
 
-## Overview
+This document provides a comprehensive overview of the assembler project, detailing the processes and modules involved.
 
-- **Preassembler**: Handles macros, generating an intermediary file for the Assembler processor.
-- **First Process**: Constructs the symbol table, defines constants, and initiates the bit file creation.
-- **Second Process**: Finalizes the bit file for the assembler.
-- **Encryption**: Secures the bit file data through encryption.
+## Components Overview
 
-## How It Works
+The assembler project consists of several components that work together to translate assembly language into machine code. The process is divided into multiple stages:
 
-The assembler processes files in a sequential manner:
+1. **Pre-Assembler**
+2. **First Process (First Pass)**
+3. **Second Process (Second Pass)**
+4. **Encryption and File Handling**
+5. **Utility Modules**
 
-1. **Preassembler Stage**: Expands macros defined in the assembly code.
-2. **First Process Stage**: Generates a symbol table and begins creating machine code.
-3. **Second Process Stage**: Completes the machine code generation using the symbol table.
-4. **Encryption Stage**: Applies encryption to the generated machine code for security.
+### 1. Pre-Assembler
 
-### Prerequisites
+The pre-assembler handles macro definitions and prepares the assembly file by expanding macros. It processes the input file to replace macro calls with their definitions to simplify the assembly process.
 
-- GCC compiler
-- Basic command-line knowledge
+### 2. First Process (First Pass)
+
+The first pass scans the assembly code to define labels and calculate their memory addresses. It builds a symbol table that maps each label to a specific address in memory, preparing for the actual code translation.
+
+### 3. Second Process (Second Pass)
+
+During the second pass, the assembler translates assembly instructions into machine code using the symbol table created in the first pass. It resolves addresses and handles instruction encoding based on the operation codes and operands specified.
+
+### 4. Encryption and File Handling
+
+After the assembly process, additional steps such as encryption or formatting may be performed to prepare the output files for deployment or further processing.
+
+### 5. Utility Modules
+
+Utility functions are crucial for the operation of the assembler. These include:
+- `util.c/h`: Common utility functions for string manipulation, file handling, and other generic tasks.
+- `printBinary.c/h`: Functions to convert numerical data into binary strings suitable for output.
+- `dataCodeTable.c/h`: Manages tables storing data and code information during the assembly process.
+
+## Build Instructions
+
+To build the project, use the provided makefile with commands:
+```
+make all
+```
+This compiles all necessary source files and links them into the final executable.
+
+## Usage
+
+To run the assembler, use the following command:
+```
+./assembler inputfile.asm
+```
+Replace `inputfile.asm` with the path to your assembly file.
+
+## Additional Notes
+
+The project includes detailed error checking and handling to ensure the assembly process is robust against common syntax and semantic errors found in assembly code.
+
+---
+
+This README aims to guide users through the setup, operation, and understanding of the assembler project.
