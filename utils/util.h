@@ -31,16 +31,18 @@ typedef enum Op_code
 } op_code;
 
 
-/* struct for holding symbols */
-typedef struct {
+/* Node to hold each symbol */
+typedef struct SymbolNode {
     char *symbol;
     char *prop;
     int val;
-} Symbol;
+    struct SymbolNode *next;  /* Pointer to the next symbol in the list */ 
+} SymbolNode;
 
+/* Symbol table structure */
 typedef struct {
-    Symbol *symbols;  /* Dynamic array of symbols */
-    size_t symbolCount;  /* Number of symbols */ 
+    SymbolNode *head;  /* Pointer to the first symbol node */ 
+    size_t symbolCount;  /* Keep track of the number of symbols */ 
 } SymbolTable;
 
 typedef struct {
@@ -169,7 +171,7 @@ int isInteger(const char *str);
  * @param name The name of the symbol to check.
  * @return Pointer to the value of the symbol if it exists, NULL otherwise.
  */
-int getSymbolIndex(const SymbolTable *st, const char *name);
+SymbolNode* getSymbol(const SymbolTable *st, const char *name);
 
 
 /**
@@ -180,7 +182,7 @@ int getSymbolIndex(const SymbolTable *st, const char *name);
  * @param name The name of the symbol to check.
  * @return Pointer to the value of the symbol if it exists, NULL otherwise.
  */
-int getSymbolIndex_dc(const SymbolTable *st, const char *name);
+SymbolNode* getSymbolIndex_dc(const SymbolTable *st, const char *name);
 
 
 /**

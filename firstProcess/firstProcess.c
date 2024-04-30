@@ -4,13 +4,12 @@
 #include <limits.h>
 #include "firstProcess.h"
 #include "../utils/printBinary.h"
-
+#include "../utils/util.h"
 
 int checkAddressType(char *operand, SymbolTable *st);
 int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable *st, int *DC, int *IC);
 char *extract_brackets(const char *input, int part);
 char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC);
-
 
 /**
  * Starts the first process of assembly translation.
@@ -59,7 +58,6 @@ void startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_t
     fclose(file);
 
     printf("\n--- COMPLETE FIRST PROCESS ---\n\n");
-
 }
 
 /**
@@ -71,7 +69,7 @@ void startFirstProcess(char *asmblerOpenFile, WordList *DC_table, WordList *IC_t
  * @param DC Pointer to the data counter.
  * @param IC Pointer to the instruction counter.
  * @return Integer status, 0 if successful, 1 if there is an error.
- * 
+ *
  * This function process the line of the original Asembly code.
  * there are 5 possible line
  * 1: empty: all lite is white spaces or tabs
@@ -148,7 +146,8 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
             if (checkWord(label) == 0) /* if return 0 - it's valid lable name - add to lable matrix */
             {
                 p = strtok(NULL, delimiters); /* Get the next word-token */
-                if(p == NULL){
+                if (p == NULL)
+                {
                     printf("Error: there is no word after lable\n");
                     return -1;
                 }
@@ -202,14 +201,15 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     }
                     else
                     {
-                        int num = getSymbolIndex(st, p); /* if there is symbol - retunrn it's index */
+                        SymbolNode *sn = getSymbol(st,p); 
+                        int num = sn->val; /* if there is symbol - retunrn it's index */
                         if (num == -1)
                         {
                             printf("Error: %s is invalid type of data = %d\n", p, num);
                             return -1;
                         }
 
-                        word = BinaryString14(st->symbols[num].val);
+                        word = BinaryString14(sn->val);
                     }
 
                     addWord(DC_table, word); /*data table adding words*/
@@ -360,6 +360,8 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     char *first_arg = extract_brackets(p, 1);
                     char *second_arg = extract_brackets(p, 2);
                     Number sNum = {0}; /*Using this to extract the number of the second arg*/
+                    /*SymbolNode *sn = getSymbol(st,second_arg);*/
+                    
                     int sVal;
 
                     *IC += 2;
@@ -367,7 +369,7 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
                     /* printf("F1:%s, S2:%s\n", first_arg, second_arg); */
 
                     /*for the secode arg -> check if it's a number or mdefine and convert to binary*/
-                    sVal = isInteger(second_arg) ? atoi(second_arg) : st->symbols[getSymbolIndex(st, second_arg)].val;
+                    sVal = isInteger(second_arg) ? atoi(second_arg) : getSymbol(st,second_arg)->val;
                     sNum.number = sVal;
 
                     /*add the word to IC_table*/
@@ -578,50 +580,49 @@ int processLine(char *line, WordList *DC_table, WordList *IC_table, SymbolTable 
  * @param operand The operand string to analyze.
  * @param st Pointer to the symbol table.
  * @return Integer representing the address type.
- * 
+ *
  * '00' -> direct addressing # with number of define: #(x)
- * '01' -> valid lable name: LABLE 
+ * '01' -> valid lable name: LABLE
  * '10' -> index with number or define: y[x]
  * '11' -> register types: r(x)
  */
 int checkAddressType(char *operand, SymbolTable *st)
 {
-    /* Addressing no 0: '00' - with # . it's can be number after of define value */
+    /* Addressing no 0: '00' - with #. It can be a number or a defined value */
     if (*operand == '#')
     {
-        char *numberPart = operand + 1; /* Skip the '#' to point to the next part */
-        /*printf("number = %s\n", numberPart);*/
+        char *numberPart = operand + 1; /* Skip the '#' to point to the next part */ 
         if (isInteger(numberPart))
         {
-            /*printf("Is an integer ! addressing 0 \n");*/
-            return 0;
+            return 0; /* It's a number, direct addressing */ 
         }
-        /* check if it's an mdefine */
         else
         {
-            int i = getSymbolIndex(st, numberPart);
-            if (i != -1 && strcmp(st->symbols[i].prop, "mdefine") == 0)
+            SymbolNode *node = getSymbol(st, numberPart);
+            if (node != NULL && strcmp(node->prop, "mdefine") == 0)
             {
-                /*printf("It's an mdefine ! addressing 0 \n");*/
-                return 0;
+                return 0; /* It's a defined macro value */
             }
         }
     }
+
     /* Addressing no 3: '11' - register addressing */
     else if (*operand == 'r' && isdigit(*(operand + 1)) && *(operand + 2) == '\0')
     {
-        /*passing the 'r'*/
-        int reg = atoi(operand + 1); /*convert the register number to integer*/
-        if (reg < 8 && reg >= 0)     /*check if the register number is valid*/
-            return 3;
+        int reg = atoi(operand + 1); /* Convert the register number to integer */ 
+        if (reg >= 0 && reg < 8)
+        {
+            return 3; /* Valid register addressing */ 
+        }
         else
         {
-            printf("Error registers are allowed only from 0 - 8");
+            printf("Error: Register numbers are allowed only from 0 to 7.\n");
             return -1;
         }
     }
-    /* Addressing no 2: '10' - with lable[int/define]
-        ---> in the seconde run we schold check if the symbol exsist */
+
+    /* Addressing no 2: '10' - with label[index/define] 
+        --> in the seconde run we schold check if the symbol exsist*/
     else if (*(operand + strlen(operand) - 1) == ']')
     {
         const char *firstBrack = strchr(operand, '[');
@@ -634,8 +635,6 @@ int checkAddressType(char *operand, SymbolTable *st)
 
             char *lab_name = (char *)malloc(firstBracketIdx + 1);
             char *lab_number = (char *)malloc(secondBracketIdx - firstBracketIdx);
-
-            int checkStDefine;
 
             if (secondBrack == NULL)
             {
@@ -665,10 +664,9 @@ int checkAddressType(char *operand, SymbolTable *st)
                 return -1;
             }
 
-            checkStDefine = getSymbolIndex(st, lab_number);
-            if (checkStDefine > -1)
+            if (getSymbol(st, lab_number) != NULL)
             {
-                if (strcmp(st->symbols[checkStDefine].prop, "mdefine") != 0)
+                if (strcmp(getSymbol(st, lab_number)->prop, "mdefine") != 0)
                 {
                     printf("Error: %s isn't a .define\n", lab_number);
                     free(lab_name);
@@ -695,13 +693,18 @@ int checkAddressType(char *operand, SymbolTable *st)
             return -1;
         }
     }
-    /* Addressing no 1: '01' - getting the from data LABLE .string, .data, .extern */
-    /* soft check if it's can be a valid lable */
-    else if (isValidLable(operand))
-        return 1;
 
-    /* if it not one of the addressing type - return -1 = invalid type*/
-    printf("Error: invalid type of addressing\n");
+    /* Addressing no 1: '01' - direct label addressing */
+    else if (isValidLable(operand))
+    {
+        return 1; /* Label exists in the symbol table */ 
+        /*if (getSymbol(st, operand) != NULL)
+        {
+        }
+        */
+    }
+
+    printf("Error: Invalid type of addressing for operand '%s'.\n", operand);
     return -1; /* invalid addressing type */
 }
 
@@ -791,7 +794,8 @@ char *addressToBinatry(int addressType, char *p, SymbolTable *st, char addressC)
             p++; /*passing on #*/
         }
 
-        sVal = isInteger(p) ? atoi(p) : st->symbols[getSymbolIndex(st, p)].val;
+        sVal = isInteger(p) ? atoi(p) : getSymbol(st,p)->val;
+        
         sNum.number = sVal;
         return getNumberBinary(&sNum);
     }

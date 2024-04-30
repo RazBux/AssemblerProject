@@ -22,8 +22,7 @@ $(EXECUTABLE): $(SOURCES)
 # Target to run the program
 run: $(EXECUTABLE)
 	@for file in $$(find testFiles/ -type f -name '*.as'); do \
-		trimmed=$$(echo "$$file" | sed 's/\.as$$//'); \
-		echo "Running $(EXECUTABLE) on $$trimmed"; \
+		trimmed=$$(echo "$$file" | sed 's/\.as$$//' | sed 's://*:/:g'); \
 		./$(EXECUTABLE) "$$trimmed"; \
 	done
 

@@ -51,42 +51,45 @@ int checkWord(const char *word)
  * @param prop The property associated with the symbol as a string.
  * @param val The integer value associated with the symbol.
  */
-void addSymbol(SymbolTable *st, char *symbol, char *prop, int val)
-{
-    /* if the symbol is new - create it */
-    /* Resize the symbols array to accommodate one more Symbol */
-    Symbol *newArray = (Symbol *)realloc(st->symbols, (st->symbolCount + 1) * sizeof(Symbol));
-    printf("Added to ST >> %s, %s, %d\n", symbol, prop, val);
-    if (newArray == NULL)
-    {
-        /* Handle realloc failure */
-        printf("Error reallocating memory\n\n");
+void addSymbol(SymbolTable *st, char *symbol, char *prop, int val) {
+    SymbolNode *newNode = (SymbolNode *)malloc(sizeof(SymbolNode));
+    if (newNode == NULL) {
+        printf("Error allocating memory for symbol node\n");
         return;
     }
-    st->symbols = newArray;
 
-    /* 
-    st->symbols[st->symbolCount].symbol = strdup(symbol);
-    st->symbols[st->symbolCount].prop = strdup(prop);
-    */
-
-    st->symbols[st->symbolCount].symbol = malloc(strlen(symbol) + 1);
-    st->symbols[st->symbolCount].prop = malloc(strlen(prop) + 1);
-    
-    if (st->symbols[st->symbolCount].symbol == NULL || st->symbols[st->symbolCount].prop == NULL){
-        printf("Fail to allocate memory");
-        exit(1);
+    /* Allocate memory and copy the symbol */ 
+    newNode->symbol = (char *)malloc(strlen(symbol) + 1); /* +1 for null terminator */ 
+    if (newNode->symbol == NULL) {
+        printf("Error allocating memory for symbol name\n");
+        free(newNode);  /* Clean up already allocated memory for the node */ 
+        return;
     }
+    strcpy(newNode->symbol, symbol);
 
-    st->symbols[st->symbolCount].symbol[strlen(symbol)] = '\0';
-    st->symbols[st->symbolCount].prop[strlen(symbol)] = '\0';
+    /* Allocate memory and copy the property */ 
+    newNode->prop = (char *)malloc(strlen(prop) + 1); /* +1 for null terminator */ 
+    if (newNode->prop == NULL) {
+        printf("Error allocating memory for property\n");
+        free(newNode->symbol); /* Clean up symbol allocation */ 
+        free(newNode);         /* Clean up node allocation */ 
+        return;
+    }
+    strcpy(newNode->prop, prop);
 
-    strcpy(st->symbols[st->symbolCount].symbol, symbol);
-    strcpy(st->symbols[st->symbolCount].prop, prop);
-    
-    st->symbols[st->symbolCount].val = val;
+    newNode->val = val;
+    newNode->next = NULL;
 
-    st->symbolCount++; /* Increment the count of symbols */
+    if (st->head == NULL) {
+        st->head = newNode; /* First node in the list */ 
+    } else {
+        SymbolNode *current = st->head;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newNode; /* Append at the end of the list */ 
+    }
+    st->symbolCount++; /* Increment the count of symbols in the table */ 
 }
 
 
@@ -96,11 +99,11 @@ void addSymbol(SymbolTable *st, char *symbol, char *prop, int val)
  *
  * @param st Pointer to the SymbolTable to initialize.
  */
-void initSymbolTable(SymbolTable *st)
-{
-    st->symbols = NULL;  /* Start with no symbols */
-    st->symbolCount = 0; /* No symbols initially */
+void initSymbolTable(SymbolTable *st) {
+    st->head = NULL;
+    st->symbolCount = 0;
 }
+
 
 
 /**
@@ -110,6 +113,7 @@ void initSymbolTable(SymbolTable *st)
  */
 void printSymbols(const SymbolTable *st)
 {
+    SymbolNode *current = st->head;
     size_t i;
     int symbolWidth = 10;
     int propWidth = 10;
@@ -125,12 +129,13 @@ void printSymbols(const SymbolTable *st)
     printf("\n");
 
     /* Print each symbol in the table */
-    for (i = 0; i < st->symbolCount; i++)
+    while(current != NULL)
     {
         printf("%-*s %-*s %-*d\n",
-               symbolWidth, st->symbols[i].symbol,
-               propWidth, st->symbols[i].prop,
-               valueWidth, st->symbols[i].val);
+               symbolWidth, current->symbol,
+               propWidth, current->prop,
+               valueWidth, current->val);
+        current = current->next;
     }
     
     printf("\n");
@@ -147,15 +152,16 @@ void printSymbols(const SymbolTable *st)
  */
 void icdcSymbolTable(const SymbolTable *st, int IC)
 {
-    size_t i;
-    for (i = 0; i < st->symbolCount; i++)
+    SymbolNode *current = st->head;
+    while (current != NULL)
     {
-        if (strcmp(st->symbols[i].prop,"code") == 0){
-            st->symbols[i].val += 100;
+        if (strcmp(current->prop,"code") == 0){
+            current->val += 100;
         }
-        else if (strcmp(st->symbols[i].prop,"data") == 0){
-            st->symbols[i].val += 100 + IC;
+        else if (strcmp(current->prop,"data") == 0){
+            current->val += 100 + IC;
         }
+        current = current->next;
     }
 }
 
@@ -167,16 +173,14 @@ void icdcSymbolTable(const SymbolTable *st, int IC)
  * @param name The name of the symbol to check.
  * @return 1 if the symbol exists, 0 otherwise.
  */
-int hasSymbol(const SymbolTable *st, const char *name)
-{
-    size_t i;
-    for (i = 0; i < st->symbolCount; i++)
-    {
-        if (strcmp(st->symbols[i].symbol, name) == 0)
-        {
-            printf("Error: %s is already in the symbol table", name);
+int hasSymbol(const SymbolTable *st, const char* name) {
+    SymbolNode *current = st->head;
+    while (current != NULL) {
+        if (strcmp(current->symbol, name) == 0) {
+            printf("Error: %s is already in the symbol table\n", name);
             return 1;
         }
+        current = current->next;
     }
     return 0;
 }
@@ -192,15 +196,16 @@ int hasSymbol(const SymbolTable *st, const char *name)
  */
 int hasSymbol_exen(const SymbolTable *st, const char *name, char* ex_prop)
 {
-    size_t i;
-    for (i = 0; i < st->symbolCount; i++)
+    SymbolNode *current = st->head;
+    while (current != NULL)
     {
-        if (strcmp(st->symbols[i].symbol, name) == 0 && 
-            (strcmp(st->symbols[i].prop, ex_prop) == 0 ))
+        if (strcmp(current->symbol, name) == 0 && 
+            (strcmp(current->prop, ex_prop) == 0 ))
         {
             printf("Error: %s is already in the symbol table", name);
             return 1;
         }
+        current = current->next;
     }
     return 0;
 }
@@ -213,21 +218,15 @@ int hasSymbol_exen(const SymbolTable *st, const char *name, char* ex_prop)
  * @param name The name of the symbol to check.
  * @return Pointer to the value of the symbol if it exists, NULL otherwise.
  */
-int getSymbolIndex(const SymbolTable *st, const char *name)
-{
-    size_t i;
-    for (i = 0; i < st->symbolCount; i++)
-    {
-        /*
-        printf("symbol:%s\n", st->symbols[i].symbol);
-        printf("name:%s\n", name);
-        */
-        if (strcmp(st->symbols[i].symbol, name) == 0)
-        {
-            return i; /* Return the address of the symbol's value */
+SymbolNode* getSymbol(const SymbolTable *st, const char *name) {
+    SymbolNode *current = st->head;
+    while (current != NULL) {
+        if (strcmp(current->symbol, name) == 0) {
+            return current; /* Return the pointer to the found symbol node */ 
         }
+        current = current->next;
     }
-    return -1; /* Return NULL if the symbol is not found */
+    return NULL; /* Return NULL if the symbol is not found */ 
 }
 
 
@@ -239,17 +238,17 @@ int getSymbolIndex(const SymbolTable *st, const char *name)
  * @param name The name of the symbol to check.
  * @return Pointer to the value of the symbol if it exists, NULL otherwise.
  */
-int getSymbolIndex_dc(const SymbolTable *st, const char *name)
+SymbolNode* getSymbolIndex_dc(const SymbolTable *st, const char *name)
 {
-    size_t i;
-    for (i = 0; i < st->symbolCount; i++)
-    {
-        if (strcmp(st->symbols[i].symbol, name) == 0 && ((strcmp(st->symbols[i].prop, "code") == 0 || strcmp(st->symbols[i].prop, "data") == 0)) )
-        {
-            return i; /* Return the address of the symbol's value */
+    SymbolNode *current = st->head;
+    while (current != NULL) {
+        if (strcmp(current->symbol, name) == 0 &&
+            (strcmp(current->prop, "code") == 0 || strcmp(current->prop, "data") == 0)) {
+            return current; /* Return the pointer to the found symbol node with the specified properties */ 
         }
+        current = current->next;
     }
-    return -1; /* Return NULL if the symbol is not found */
+    return NULL; /* Return NULL if the symbol is not found or does not have the specified properties */ 
 }
 
 
@@ -260,16 +259,18 @@ int getSymbolIndex_dc(const SymbolTable *st, const char *name)
  *
  * @param st A pointer to the SymbolTable to free.
  */
-void freeSymbolTable(SymbolTable *st)
-{
-    size_t i;
-    for (i = 0; i < st->symbolCount; i++)
-    {
-        free(st->symbols[i].symbol);
-        free(st->symbols[i].prop);
+void freeSymbolTable(SymbolTable *st) {
+    SymbolNode *current = st->head;
+    SymbolNode *next;
+
+    while (current != NULL) {
+        next = current->next;
+        free(current->symbol);
+        free(current->prop);
+        free(current);
+        current = next;
     }
-    free(st->symbols);
-    st->symbols = NULL;
+    st->head = NULL;
     st->symbolCount = 0;
 }
 
@@ -282,17 +283,18 @@ void freeSymbolTable(SymbolTable *st)
  */
 void writeSymbolTableToFile(const SymbolTable *st, const char *filename)
 {
-    size_t i;
+    SymbolNode *current = st->head;
     FILE *file = fopen(filename, "w");
     if (file == NULL)
     {
         printf("Error opening file\n");
         return;
     }
-    for (i = 0; i < st->symbolCount; i++)
+    while (current != NULL)
     {
         fprintf(file, "Symbol: %s, Prop: %s, Val: %d\n",
-                st->symbols[i].symbol, st->symbols[i].prop, st->symbols[i].val);
+                current->symbol, current->prop, current->val);
+        current = current->next;
     }
     fclose(file);
 }
