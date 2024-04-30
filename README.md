@@ -1,61 +1,49 @@
 
 # Assembler Project Overview
 
-This document provides a comprehensive overview of the assembler project, detailing the processes and modules involved.
+This README provides an overview of the assembler project, detailing the processes and modules involved in translating assembly language into machine code.
 
 ## Components Overview
 
-The assembler project consists of several components that work together to translate assembly language into machine code. The process is divided into multiple stages:
+The project is structured into several key stages:
 
-1. **Pre-Assembler**
-2. **First Process (First Pass)**
-3. **Second Process (Second Pass)**
-4. **Encryption and File Handling**
-5. **Utility Modules**
+1. **Pre-Assembler**: Handles macro expansions by processing the input file to replace macro calls with their definitions.
 
-### 1. Pre-Assembler
+2. **First Process (First Pass)**: Defines labels and calculates memory addresses, building a symbol table for subsequent translation.
 
-The pre-assembler handles macro definitions and prepares the assembly file by expanding macros. It processes the input file to replace macro calls with their definitions to simplify the assembly process.
+3. **Second Process (Second Pass)**: Translates assembly instructions into machine code, resolving addresses using the previously built symbol table.
 
-### 2. First Process (First Pass)
+4. **Encryption and File Handling**: Applies additional processing such as encryption and formats output files for deployment.
 
-The first pass scans the assembly code to define labels and calculate their memory addresses. It builds a symbol table that maps each label to a specific address in memory, preparing for the actual code translation.
-
-### 3. Second Process (Second Pass)
-
-During the second pass, the assembler translates assembly instructions into machine code using the symbol table created in the first pass. It resolves addresses and handles instruction encoding based on the operation codes and operands specified.
-
-### 4. Encryption and File Handling
-
-After the assembly process, additional steps such as encryption or formatting may be performed to prepare the output files for deployment or further processing.
-
-### 5. Utility Modules
-
-Utility functions are crucial for the operation of the assembler. These include:
-- `util.c/h`: Common utility functions for string manipulation, file handling, and other generic tasks.
-- `printBinary.c/h`: Functions to convert numerical data into binary strings suitable for output.
-- `dataCodeTable.c/h`: Manages tables storing data and code information during the assembly process.
+5. **Utility Modules**: Provides essential services like string manipulation, file handling, and binary conversions.
+    - `util.c/h`: Common utilities.
+    - `printBinary.c/h`: Binary string conversion functions.
+    - `dataCodeTable.c/h`: Manages data and code information tables.
 
 ## Build Instructions
 
-To build the project, use the provided makefile with commands:
+Use the makefile provided to compile and link the source files:
 ```
-make all
+make
 ```
-This compiles all necessary source files and links them into the final executable.
+To clean up generated files:
+```
+make clean
+```
 
 ## Usage
 
-To run the assembler, use the following command:
+To run the assembler on single or multiple files:
 ```
-./assembler inputfile.asm
+./asmbler file1 file2 ...
 ```
-Replace `inputfile.asm` with the path to your assembly file.
+For all files in the `testFile` directory:
+```
+make run
+```
 
 ## Additional Notes
 
-The project includes detailed error checking and handling to ensure the assembly process is robust against common syntax and semantic errors found in assembly code.
+The project includes robust error handling to manage common syntax and semantic errors in assembly code.
 
----
-
-This README aims to guide users through the setup, operation, and understanding of the assembler project.
+--- 
