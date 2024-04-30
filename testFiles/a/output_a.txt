@@ -1,0 +1,70 @@
+
+#####      ASMBLER FILE testFiles/a/a.as       ####
+
+--- START PRE-ASSMBLER ---
+No macros stored.
+Output written to: testFiles/a/a.am
+
+--- PRE-ASSMBLER COMPLETE! ---
+
+--- STRT FIRST PROCESS ---
+
+line >>> .entry LIST 
+New entry => LIST. 
+line >>> .extern W
+New external => W. 
+line >>> .define sz = 2 
+mdefine: sz = 2
+
+line >>> MAIN:       mov r3,LIST[sz]
+LABLE: MAIN > firstOp r3 addressType: 2
+secondOp LIST[sz] addressType: 3
+
+line >>> LOOP:       jmp W
+LABLE: LOOP > operand W addressType: 1
+
+line >>>             prn #-5
+operand #-5 addressType: 0
+
+line >>>             mov STR[5],STR[2] 
+firstOp STR[5] addressType: 2
+secondOp STR[2] addressType: 2
+
+line >>>             sub r1,r4
+firstOp r1 addressType: 3
+secondOp r4 addressType: 3
+
+line >>>             cmp K,#sz 
+firstOp K addressType: 0
+secondOp #sz addressType: 1
+
+line >>>             bne W
+operand W addressType: 1
+
+line >>> L1:         inc L3LABLE: L1 > operand L3 addressType: 1
+
+print symbol table:::
+Symbol     Property   Value     
+----------------------------
+LIST       entry      0         
+W          external   0         
+sz         mdefine    2         
+MAIN       code       100       
+LOOP       code       104       
+L1         code       120       
+
+
+--- COMPLETE FIRST PROCESS ---
+
+
+--- START SECOND PROCESS ---
+Error: there is no L3 in the Symbol Table
+Error: there is no K in the Symbol Table
+Error: there is no STR in the Symbol Table
+Error: there is no STR in the Symbol Table
+Error: there is no LIST in the Symbol Table
+
+--- SECOND PROCESS COMPLETE ---
+There were 5 number of error >> the program won't create the files
+#####      END OF testFiles/a/a.as       #### 
+
